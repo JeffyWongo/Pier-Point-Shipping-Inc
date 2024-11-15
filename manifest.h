@@ -1,13 +1,17 @@
 #ifndef MANIFEST_H
 #define MANIFEST_H
 
-#include <iostream>
-#include <fstream>
-#include <sstream>
 #include <string>
-#include <vector>
+#include "ship.h"
 
 using namespace std;
+
+class Manifest{
+    public:
+    Manifest();
+    void readManifest(const string& filename, Ship& ship);
+    void outboundManifest(const string& filename, const Ship& ship);
+};
 
 
 #endif 
