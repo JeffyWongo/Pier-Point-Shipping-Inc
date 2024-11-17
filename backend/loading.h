@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include "ship.h"
 
 using namespace std;
 

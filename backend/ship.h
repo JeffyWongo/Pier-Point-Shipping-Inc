@@ -3,16 +3,17 @@
 
 #include <string>
 #include <vector>
+#include "container.h"
 
 using namespace std;
 
 class Ship {
     private:
-        vector<vector<string>> manifest;
+        vector<vector<Container>> manifest;
     public:
         Ship();
         void readManifest(string);
-        vector<vector<string>>& returnManifest();
+        vector<vector<Container>>& returnManifest();
 
 };
 
