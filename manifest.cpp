@@ -17,15 +17,3 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
-
-using namespace std;
-
-Manifest::Manifest() {}
-
-void Manifest::readManifest(const string& filename, Ship& ship){
-
-}
-
-void Manifest::outboundManifest(const string& filename, const Ship& ship){
-    
-}
