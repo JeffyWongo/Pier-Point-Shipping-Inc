@@ -6,32 +6,48 @@ Purpose of class Ship:
 """
 
 class Ship:
-    def __init__(self, x: int, y: int, weight: int, tag: str):
-        self.x = x
-        self.y = y
-        self.weight = weight
-        self.tag = tag # this helps to identify the container type
-
+    def __init__(self):
+        self.vector = [
+            [{"x": x, "y": y, "weight": 0, "tag": None} for y in range(12)]
+            for x in range(8)
+        ]
     #--------------------------------------------------------------
-    def get_location(self) -> tuple:
-        return self.x, self.y
+    def validate_input(self, x: int, y: int):
+        if not (0 <= x < 8 and 0 <= y < 12):
+            raise ValueError(f"Invalid coordinated: ({x}, {y}). Must be with in 8*12 grid.")
+        
+    def validate_weight(self, weight: int):
+        if not (0 <= weight <= 99999):
+            raise ValueError(f"Invalid weight: {weight}. Must be between 0 and 99999 lbs.")
+        
+    #--------------------------------------------------------------
+    def get_location(self, x: int, y: int) -> dict:
+        self.validate_input(x, y)
+        return self.vector[x][y]
     
-    def get_weight(self) -> int:
-        return self.weight
+    def get_weight(self, x: int, y: int) -> int:
+        self.validate_input(x, y)
+        return self.vector[x][y]["weight"]
     
-    def get_tag(self) -> str:
-        return self.tag
+    def get_tag(self, x: int, y: int) -> str:
+        self.validate_input(x, y)
+        return self.vector[x][y]["tag"]
     
     #--------------------------------------------------------------
-    def set_location(self, x: int, y: int):
-        self.x = x
-        self.y = y
+    def set_location(self, x: int, y: int, weight: int, tag: str):
+        self.validate_input(x, y)
+        self.validate_weight(weight)
+        self.vector[x][y]["weight"] = weight
+        self.vector[x][y]["tag"] = tag
 
-    def set_weight(self, weight: int):
-        self.weight = weight
+    def set_weight(self, x: int, y: int, weight: int):
+        self.validate_input(x, y)
+        self.validate_weight(weight)
+        self.vector[x][y]["weight"] = weight
 
-    def set_name(self, tag:str):
-        self.tag = tag
+    def set_name(self, x: int, y: int, tag:str):
+        self.validate_input(x, y)
+        self.vector[x][y]["tag"] = tag
 
     #--------------------------------------------------------------
     def __str__(self):
