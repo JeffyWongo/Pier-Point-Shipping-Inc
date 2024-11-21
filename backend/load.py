@@ -11,7 +11,7 @@ class Load:
     @staticmethod
     def run(ship_layout: ship):
         # TODO: how we getting containers to unload and load
-        Load.a_star(ship, [], [])
+        Load.a_star(ship_layout, [], [])
 
     
     # a star algorithm for moves to do
