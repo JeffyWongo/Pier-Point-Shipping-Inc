@@ -1,5 +1,4 @@
-//main task
-/*
+"""
 [INPUT]
     1. input file
         - test if the file got read
@@ -11,9 +10,4 @@
 [OUTPUT]
     1. access array
     2. traverse & write a new manifestOUTBOUND.txt
-*/
-
-#include "manifest.h"
-#include <iostream>
-#include <fstream>
-#include <sstream>
+"""

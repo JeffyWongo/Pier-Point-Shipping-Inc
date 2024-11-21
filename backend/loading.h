@@ -3,7 +3,6 @@
 
 #include <string>
 #include <vector>
-#include "ship.h"
 
 using namespace std;
 
@@ -12,7 +11,6 @@ class Loading {
         static void unloading();
         static void loading();
     public:
-        static void load(Ship&);
 
 };
 
