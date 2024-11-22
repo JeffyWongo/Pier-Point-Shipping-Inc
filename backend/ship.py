@@ -1,62 +1,77 @@
 """
 Purpose of class Ship:
-    1. Create a 8*12 vector to store as ship
+    1. Create a 12*8 vector to store as ship
     2. Able to be accessed by manifest, load, and balancing program
     3. Each location stores: x y location, weight, and names
+    4. When an item is moved, note that this program !!! WILL NOT !!! delete the source item
+
+    ADDED:
+    1. add new content in the bridge
+    2. move imported content from a place to UNUSED
+    3. move imported content from a place to NAN, and should prompt rejected
+    4. move imported content to another place already with content, should reject
+    5. display current grid
+
+    REMEMBER:
+    When your program finished running, RUN set_location again to update the ship :)!
 """
+# WATCHOUT, this is a ZERO-based array
 
 class Ship:
     def __init__(self):
         self.vector = [
-            [{"x": x, "y": y, "weight": 0, "name": "UNUSED"} for y in range(12)]
-            for x in range(8)
+            [{"y": y, "x": x, "weight": 0, "name": "UNUSED"} for x in range(12)]
+            for y in range(8)
         ]
-    #--------------------------------------------------------------
-    def validate_input(self, x: int, y: int):
-        if not (0 <= x < 8 and 0 <= y < 12):
-            raise ValueError(f"Invalid coordinated: ({x}, {y}). Must be with in 8*12 grid.")
+    #VALIDATIONS--------------------------------------------------------------
+    def validate_input(self, y: int, x: int):
+        if not (0 <= x < 12 and 0 <= y < 8):
+            raise ValueError(f"Invalid coordinated: ({y + 1}, {x + 1}). Must be with in 12*8 grid.")
         
     def validate_weight(self, weight: int):
         if not (0 <= weight <= 99999):
             raise ValueError(f"Invalid weight: {weight}. Must be between 0 and 99999 lbs.")
         
-    def validate_access(self, x: int, y: int):
-        self.validate_input(x, y) #implement validate input here, for simplicity
-        if self.vector[x][y]["name"] == "NAN":
-            raise PermissionError(f"Access denied for ({x}, {y}). Container is marked as 'NAN.'")
+    def validate_access(self, y: int, x: int):
+        self.validate_input(y, x) # implement validate input here, for simplicity
+        if self.vector[y][x]["name"] == "NAN" and self.vector[y][x]["weight"] != 0:
+            raise PermissionError(f"Access denied for ({y}, {x}). Container is marked as 'NAN.'")
         
-    #--------------------------------------------------------------
-    def get_location(self, x: int, y: int) -> dict:
-        self.validate_access(x, y)
-        return self.vector[x][y]
+    #GETS--------------------------------------------------------------
+    def get_location(self, y: int, x: int) -> dict:
+        self.validate_access(y, x)
+        return self.vector[y][x]
     
-    def get_weight(self, x: int, y: int) -> int:
-        self.validate_access(x, y)
-        return self.vector[x][y]["weight"]
+    def get_weight(self, y: int, x: int) -> int:
+        self.validate_access(y, x)
+        return self.vector[y][x]["weight"]
     
-    def get_tag(self, x: int, y: int) -> str:
-        self.validate_access(x, y)
-        return self.vector[x][y]["tag"]
+    def get_tag(self, y: int, x: int) -> str:
+        self.validate_access(y, x)
+        return self.vector[y][x]["tag"]
     
-    #--------------------------------------------------------------
-    def set_location(self, x: int, y: int, weight: int, name: str):
-        self.validate_access(x, y)
+    #SETS--------------------------------------------------------------
+    def set_location(self, y: int, x: int, weight: int, name: str):
+        self.validate_access(y, x)
         self.validate_weight(weight)
-        self.vector[x][y]["weight"] = weight
-        self.vector[x][y]["name"] = name
+        # check if occupied
+        if self.vector[y][x]["name"] != "UNUSED" or self.vector[y][x]["weight"] != 0:
+            raise ValueError(f"Location ({y + 1}, {x + 1} already occupied)")
+        self.vector[y][x]["weight"] = weight
+        self.vector[y][x]["name"] = name
 
-    def set_weight(self, x: int, y: int, weight: int):
-        self.validate_access(x, y)
+    def set_weight(self, y: int, x: int, weight: int):
+        self.validate_access(y, x)
         self.validate_weight(weight)
-        self.vector[x][y]["weight"] = weight
+        self.vector[y][x]["weight"] = weight
 
-    def set_name(self, x: int, y: int, name:str):
-        if name == "NAN": #can mark as NAN ONCE
-            self.vector[x][y]["name"] = name
+    def set_name(self, y: int, x: int, name:str):
+        if name == "NAN": # can mark as NAN ONCE
+            self.vector[y][x]["name"] = name
         else:
-            self.validate_access(x, y)
-            self.vector[x][y]["name"] = name
+            self.validate_access(y, x)
+            self.vector[y][x]["name"] = name
 
     #--------------------------------------------------------------
     def __str__(self):
-        return f"[{self.x}, {self.y}], {{{self.weight}}}, {self.name}"
+        return f"[{self.y}, {self.x}], {{{self.weight}}}, {self.name}"
