@@ -10,7 +10,6 @@ Purpose of class Ship:
     2. move imported content from a place to UNUSED
     3. move imported content from a place to NAN, and should prompt rejected
     4. move imported content to another place already with content, should reject
-    5. display current grid
 
     REMEMBER:
     When your program finished running, RUN set_location again to update the ship :)!
@@ -46,7 +45,7 @@ class Ship:
         self.validate_access(y, x)
         return self.vector[y][x]["weight"]
     
-    def get_tag(self, y: int, x: int) -> str:
+    def get_name(self, y: int, x: int) -> str:
         self.validate_access(y, x)
         return self.vector[y][x]["tag"]
     
