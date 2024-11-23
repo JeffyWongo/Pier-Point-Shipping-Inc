@@ -57,10 +57,27 @@ class Load:
     # check if containers to unload are off the ship (and buffer)
     @staticmethod
     def check_unload_goal(ship_layout, unload_list):
+        # TODO: check if containers to unload are off
+        ship_containers = [container for row in ship_layout for container in row]
+
+        # check if every container in unload_list is in ship_containers
+        for container in unload_list:
+            if container in ship_containers:
+                # TODO: paranoia about equals function (pass by ref?)
+                return False
+
         return True
     
     # check if containers to load are on the ship
     def check_load_goal(ship_layout, load_list):
+        # TODO: check if containers to load are on
+        ship_containers = [container for row in ship_layout for container in row]
+
+        # check if every container in load_list is in ship_containers
+        for container in load_list:
+            if container not in ship_containers:
+                return False
+
         return True
 
     # check if goal of loading is done
@@ -76,7 +93,6 @@ class Load:
     def calc_unload_h(ship_layout, unload_list):
         sum = 0
         for location in unload_list:
-            # Dummy variable (0,0) right now until i know how this is being represented
             # TODO: check if container is off
             # function param: (x, y)
             sum += Load.load_unload_heuristic(0, 0) # TODO: add number of containers on top
@@ -94,7 +110,6 @@ class Load:
     def calc_load_h(load_list):
         sum = 0
         for location in load_list:
-            # Dummy variable (0,0) right now until i know how this is being represented
             # function param: (x, y)
             sum += Load.load_unload_heuristic(0, 0)
         return sum
@@ -107,7 +122,7 @@ class Load:
 # Load.run(ship.Ship)
 # print(ship.Ship.vector[8][12])
 
-container = Container("A", 12)
+container = Container("A", 120)
 print(container.name)
 print(container.weight)
 
