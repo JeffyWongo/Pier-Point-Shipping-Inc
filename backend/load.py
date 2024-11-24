@@ -27,27 +27,40 @@ class Load:
 
         # initialize frontier, explored, and solution
         frontier = queue.PriorityQueue()
-        explored = dict() # TODO: getting dictionary key value pair working (ship_layout, True)
-        solution = queue.Queue() # TODO: keep track of previous states using tree?
+        explored = {}
+        solution_map = {} # TODO: keep track of previous states
         
-        # TODO: have total cost (for priority), keep cost and heuristic separate
-        frontier.put((0, Load.calc_heuristic(ship_layout, unload_list, load_list), ship_layout.copy()))
+        # pair stores (f, g, h, state)
+        # f = g (cost) + h (heuristic)
+        initial_h = Load.calc_heuristic(ship_layout, unload_list, load_list)
+        frontier.put((initial_h, 0, initial_h, ship_layout.copy()))
 
         # loops for each state in queue
         while not frontier.empty():
-            current = frontier.get()
-
-            current_layout = current[2]
+            _, current_cost, current_h, current_layout = frontier.get()
+            hashable_layout = tuple(tuple(row) for row in current_layout)
 
             # TODO: check goal state
-            if(Load.check_goal_state(ship_layout, unload_list, load_list)):
-                break
+            if(Load.check_goal_state(current_layout, unload_list, load_list)):
+                return Load.reconstruct_path(solution_map, current_layout)
+
+            # check if state is already explored
+            # TODO: don't load these states into frontier (when frontier implemented)
+            if(explored[hashable_layout]==True):
+                continue
 
             # note that current state is explored (map / dictionary)
-            explored[current_layout] = True
+            explored[hashable_layout] = True
 
             # TODO: add all possible moves to the frontier
             frontier.put(current.first, Load.calc_heuristic(ship_layout, unload_list, load_list), [])
+
+
+    # reconstruct path when solution is found
+    @staticmethod
+    def reconstruct_path(solution_map, current_layout):
+        # TODO: reconstruct solution
+        return
 
     # check if goal state is satisfied
     @staticmethod
@@ -57,7 +70,6 @@ class Load:
     # check if containers to unload are off the ship (and buffer)
     @staticmethod
     def check_unload_goal(ship_layout, unload_list):
-        # TODO: check if containers to unload are off
         ship_containers = [container for row in ship_layout for container in row]
 
         # check if every container in unload_list is in ship_containers
@@ -70,7 +82,6 @@ class Load:
     
     # check if containers to load are on the ship
     def check_load_goal(ship_layout, load_list):
-        # TODO: check if containers to load are on
         ship_containers = [container for row in ship_layout for container in row]
 
         # check if every container in load_list is in ship_containers
