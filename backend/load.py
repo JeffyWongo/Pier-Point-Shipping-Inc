@@ -11,6 +11,7 @@ class Container:
         self.name = name
         self.weight = weight
 
+# cannot do Container == Container right now programatically
 
 class Load:
     # function called by main program
@@ -72,23 +73,21 @@ class Load:
     # check if containers to unload are off the ship (and buffer)
     @staticmethod
     def check_unload_goal(ship_layout, unload_list):
-        ship_containers = [container for row in ship_layout for container in row]
+        ship_containers = [container.name for row in ship_layout for container in row]
 
         # check if every container in unload_list is in ship_containers
-        for container in unload_list:
-            if container in ship_containers:
-                # TODO: paranoia about equals function (pass by ref?)
+        for container, _ in unload_list:
+            if container.name in ship_containers:
                 return False
 
         return True
     
     # check if containers to load are on the ship
     def check_load_goal(ship_layout, load_list):
-        ship_containers = [container for row in ship_layout for container in row]
-
         # check if every container in load_list is in ship_containers
-        for container in load_list:
-            if container not in ship_containers:
+        for container, location in load_list:
+            x, y = location
+            if ship_layout[x][y].name != container.name:
                 return False
 
         return True
@@ -143,9 +142,9 @@ class Load:
 # Load.run(ship.Ship)
 # print(ship.Ship.vector[8][12])
 
-container = Container("A", 120)
-print(container.name)
-print(container.weight)
+# container = Container("A", 120)
+# print(container.name)
+# print(container.weight)
 
 
 # Testing
@@ -157,6 +156,17 @@ layout = [[Container() for i in range(0,12)] for j in range(0,8)]
 layout[0][0] = Container("A", 120)
 layout[1][0] = Container("C", 400)
 
+# Test case for running:
 # Load.run(layout, [(unload_container, (1, 3))], [(load_container, (1, 4))])
-h = Load.calc_heuristic(layout, [(unload_container, (0, 0))], [(load_container, (0, 1))])
-print(h)
+
+# Test case for heuristic:
+# h = Load.calc_heuristic(layout, [(unload_container, (0, 0))], [(load_container, (0, 1))])
+# print(h)
+
+# Test case for checking goal state:
+# # loading:
+# result = Load.check_goal_state(layout, [], [(Container("A", 120), (0,0)), (Container("C", 400), (1,0))])
+# print(result)
+# # unloading:
+# result = Load.check_goal_state(layout, [(Container("C", 400), (1,0))], [])
+# print(result)
