@@ -33,7 +33,7 @@ class Load:
         # pair stores (f, g, h, state)
         # f = g (cost) + h (heuristic)
         initial_h = Load.calc_heuristic(ship_layout, full_unload_list, full_load_list)
-        frontier.put((initial_h, 0, initial_h, ship_layout.copy(), full_unload_list, full_load_list)) # TODO: need to update unload and load list as we go (put in the tuple)
+        frontier.put((initial_h, 0, initial_h, ship_layout.copy(), full_unload_list, full_load_list))
 
         # loops for each state in queue
         while not frontier.empty():
@@ -104,12 +104,24 @@ class Load:
     @staticmethod
     def calc_unload_h(ship_layout, unload_list):
         sum = 0
+        lowest_per_col = {}
+
         for _, location in unload_list:
             r, c = location
-            # TODO: for each column, check what lowest container is (currenly, if 2 containers same col, we overcount)
+            old_low = 8
+
+            if c not in lowest_per_col:
+                lowest_per_col[c] = r
+            elif r < lowest_per_col[c]:
+                old_low = lowest_per_col[c]
+                lowest_per_col[c] = r
+            else:
+                old_low = lowest_per_col[c]
+                sum -= 1
+
             # Check if there are containers on top (add to h)
             for row in range(r + 1, 8):  # Iterate above the current position
-                if ship_layout[row][c].name != "NaN":  # Check if empty
+                if ship_layout[row][c].name != "NaN" and row < old_low:  # Check if empty
                     sum += 1
                 else:
                     break
@@ -155,13 +167,16 @@ load_container = Container("B", 200)
 layout = [[Container() for i in range(0,12)] for j in range(0,8)]
 layout[0][0] = Container("A", 120)
 layout[1][0] = Container("C", 400)
+layout[2][0] = Container("D", 500)
 
 # Test case for running:
 # Load.run(layout, [(unload_container, (1, 3))], [(load_container, (1, 4))])
 
-# Test case for heuristic:
+# Test case for heuristic: (may still be glitchy with multiple containers in the same column)
 # h = Load.calc_heuristic(layout, [(unload_container, (0, 0))], [(load_container, (0, 1))])
 # print(h)
+h = Load.calc_heuristic(layout, [(Container("A", 120), (2,0)), (Container("C", 400), (0,0))], [])
+print(h)
 
 # Test case for checking goal state:
 # # loading:
