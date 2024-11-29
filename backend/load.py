@@ -7,7 +7,7 @@ import queue
 
 # for testing
 class Container:
-    def __init__(self, name = "NaN", weight = 0):
+    def __init__(self, name = "UNUSED", weight = 0):
         self.name = name
         self.weight = weight
 
@@ -55,11 +55,23 @@ class Load:
             explored[hashable_layout] = True
 
             # TODO: add all possible moves to the frontier
-            # TODO: don't load these states into frontier (when frontier implemented)
+            # TODO: don't load already explored states into frontier (when frontier implemented)
             # TODO: update load and unload list for each state
             # TODO: keep track of previous states
+            top_containers = Load.find_top_empty_containers(current_layout)
             frontier.put()
-
+            
+    # find highest empty slot in each column
+    @staticmethod
+    def find_top_empty_containers(current_layout):
+        top_containers = []
+        transposed_layout = zip(*current_layout)
+        for col, column in enumerate(transposed_layout): # iterate through columns
+            for row, item in enumerate(column):
+                if(item.name == "UNUSED"):
+                    top_containers.append((row, col))
+                    break
+        return top_containers
 
     # reconstruct path when solution is found
     @staticmethod
@@ -124,7 +136,7 @@ class Load:
 
             # Check if there are containers on top (add to h)
             for row in range(r + 1, 8):  # Iterate above the current position
-                if ship_layout[row][c].name != "NaN" and row < old_low:  # Check if empty
+                if ship_layout[row][c].name != "NAN" and row < old_low:  # Check if empty
                     sum += 1
                 else:
                     break
@@ -181,8 +193,8 @@ layout[2][0] = Container("D", 500)
 # Test case for heuristic: (may still be glitchy with multiple containers in the same column)
 # h = Load.calc_heuristic(layout, [(unload_container, (0, 0))], [(load_container, (0, 1))])
 # print(h)
-h = Load.calc_heuristic(layout, [(Container("A", 120), (2,0)), (Container("C", 400), (0,0))], [])
-print(h)
+# h = Load.calc_heuristic(layout, [(Container("A", 120), (2,0)), (Container("C", 400), (0,0))], [])
+# print(h)
 
 # Test case for checking goal state:
 # # loading:
@@ -191,3 +203,18 @@ print(h)
 # # unloading:
 # result = Load.check_goal_state(layout, [(Container("C", 400), (1,0))], [])
 # print(result)
+
+# Test case for finding top empty containers for each column:
+layout2 = [[Container() for i in range(0,12)] for j in range(0,8)]
+layout2[0][0] = load_container
+layout2[0][1] = load_container
+# layout2[0][2] = load_container
+# layout2[0][3] = load_container
+# layout2[0][4] = load_container
+# layout2[1][0] = load_container
+# layout2[1][1] = load_container
+# layout2[2][0] = load_container
+output = Load.find_top_empty_containers(layout2)
+for item in output:
+    cords = "(" + str(item[0]) + ", " + str(item[1]) + ")"
+    print(cords)
