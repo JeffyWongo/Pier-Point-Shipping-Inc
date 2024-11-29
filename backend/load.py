@@ -17,6 +17,9 @@ class Load:
     # function called by main program
     @staticmethod
     def run(ship_layout, unload_list, load_list):
+        for item in load_list:
+            item += item + (8,0)
+
         Load.a_star(ship_layout, unload_list, load_list)
 
     
@@ -140,10 +143,12 @@ class Load:
     @staticmethod
     def calc_load_h(load_list):
         sum = 0
-        for _, location in load_list:
+        for _, location, current_location in load_list:
             # distance to (9,1)
             r, c = location
-            sum += Load.load_unload_heuristic(r, c)
+            x, y = current_location
+            # sum += Load.load_unload_heuristic(r, c)
+            sum += abs(r-x) + abs(c-y)
         return sum
 
 
@@ -162,6 +167,7 @@ class Load:
 # Testing
 unload_container = Container("A", 120)
 load_container = Container("B", 200)
+load_container2 = Container("F", 300)
 
 # 8 x 12
 layout = [[Container() for i in range(0,12)] for j in range(0,8)]
