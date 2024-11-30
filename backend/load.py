@@ -205,16 +205,13 @@ layout[2][0] = Container("D", 500)
 # print(result)
 
 # Test case for finding top empty containers for each column:
-layout2 = [[Container() for i in range(0,12)] for j in range(0,8)]
-layout2[0][0] = load_container
-layout2[0][1] = load_container
-# layout2[0][2] = load_container
-# layout2[0][3] = load_container
-# layout2[0][4] = load_container
+# layout2 = [[Container() for i in range(0,12)] for j in range(0,8)]
+# layout2[0][0] = load_container
 # layout2[1][0] = load_container
-# layout2[1][1] = load_container
 # layout2[2][0] = load_container
-output = Load.find_top_empty_containers(layout2)
-for item in output:
-    cords = "(" + str(item[0]) + ", " + str(item[1]) + ")"
-    print(cords)
+# layout2[0][1] = load_container
+# layout2[0][4] = load_container
+# output = Load.find_top_empty_containers(layout2)
+# for item in output:
+#     cords = "(" + str(item[0]) + ", " + str(item[1]) + ")"
+#     print(cords)
