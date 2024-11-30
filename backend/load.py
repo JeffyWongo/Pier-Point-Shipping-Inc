@@ -17,8 +17,11 @@ class Load:
     # function called by main program
     @staticmethod
     def run(ship_layout, unload_list, load_list):
-        for item in load_list:
-            item += item + (8,0)
+        for i in range(len(unload_list)):
+            unload_list[i] = unload_list[i] + (unload_list[i][1],)
+    
+        for i in range(len(load_list)):
+            load_list[i] = load_list[i] + ((8, 0),)
 
         Load.a_star(ship_layout, unload_list, load_list)
 
@@ -40,7 +43,7 @@ class Load:
 
         # loops for each state in queue
         while not frontier.empty():
-            _, current_cost, current_h, current_layout, unload_list, load_list = frontier.get()
+            _, current_cost, _, current_layout, unload_list, load_list = frontier.get()
             hashable_layout = tuple(tuple(row) for row in current_layout)
 
             # check goal state
@@ -68,7 +71,65 @@ class Load:
             # 1. Every container to load to empty_spots
             # 2. Every container in top_containers to empty_spots
             # 3. Every container in top_containers to unloaded
-            frontier.put()
+
+            # every load_list containers to empty_spots
+            for info in load_list:
+                container, desired_cords, current_cords = info
+                if(current_cords == desired_cords):
+                    continue
+                for empty_spot in empty_spots:
+                    layout = current_layout.copy()
+                    if(current_cords!=(8,0)):
+                        layout[current_cords[0], current_cords[1]] = Container()
+                    layout[empty_spot[0], empty_spot[1]] = container
+                    info[2] = empty_spot.copy()
+
+                    cost = abs(empty_spot[0] - current_cords[0]) + abs(empty_spot[1] - current_cords[1])
+                    h = Load.calc_heuristic(layout, unload_list, load_list)
+
+                    current_cords = empty_spot
+                    frontier.put(current_cost + cost + h, current_cost + cost, h, layout, unload_list, load_list)
+
+            # every top_container containers to empty_spots or unload
+            for container_cord in top_containers:
+                r, c = container_cord
+                from_container = current_layout[r, c]
+
+                is_on_load_list = False
+                for load_container in load_list: # TODO: doesn't deal with duplicates
+                    if(load_container.name == from_container.name):
+                        is_on_load_list = True
+                        break
+
+                is_on_unload_list = False
+                for unload_container in unload_list: # TODO: doesn't deal with duplicates
+                    if(unload_container.name == from_container.name):
+                        is_on_unload_list = True
+                        break
+
+                # move to every possible empty spot
+                for empty_cord in empty_spots:
+                    layout = current_layout.copy()
+                    to_spot = layout[empty_cord[0], empty_cord[1]]
+
+                    # TODO: calculate cost. check if container is part of load_list or unload_list
+
+                    # swap
+                    temp_container = to_spot.copy()
+                    to_spot = from_container
+                    from_container = temp_container
+
+                    cost = abs(empty_cord[0] - r) + abs(empty_cord[1] - c)
+                    h = Load.calc_heuristic(layout, unload_list, load_list)
+                    frontier.put(current_cost + cost + h, current_cost + cost, h, layout, unload_list, load_list)
+
+                # TODO: unload that container
+                layout = current_layout.copy()
+                from_container = Container()
+
+                cost = abs(8 - r) + c
+                h = Load.calc_heuristic(layout, unload_list, load_list)
+                frontier.put(current_cost + cost + h, current_cost + cost, h, layout, unload_list, load_list)
             
     # find highest empty slot in each column
     @staticmethod
@@ -101,7 +162,7 @@ class Load:
         ship_containers = [container.name for row in ship_layout for container in row]
 
         # check if every container in unload_list is in ship_containers
-        for container, _ in unload_list:
+        for container, _, _ in unload_list:
             if container.name in ship_containers:
                 return False
 
@@ -110,7 +171,7 @@ class Load:
     # check if containers to load are on the ship
     def check_load_goal(ship_layout, load_list):
         # check if every container in load_list is in ship_containers
-        for container, location in load_list:
+        for container, location, _ in load_list:
             x, y = location
             if ship_layout[x][y].name != container.name:
                 return False
@@ -131,7 +192,7 @@ class Load:
         sum = 0
         lowest_per_col = {}
 
-        for _, location in unload_list:
+        for _, location, _ in unload_list:
             r, c = location
             old_low = 8
 
@@ -187,18 +248,27 @@ class Load:
 
 
 # Testing
-unload_container = Container("A", 120)
-load_container = Container("B", 200)
-load_container2 = Container("F", 300)
+container1 = Container("A", 120)
+container2 = Container("B", 200)
+container3 = Container("C", 400)
+container4 = Container("D", 500)
+container5 = Container("F", 300)
 
 # 8 x 12
 layout = [[Container() for i in range(0,12)] for j in range(0,8)]
-layout[0][0] = Container("A", 120)
-layout[1][0] = Container("C", 400)
-layout[2][0] = Container("D", 500)
+# layout[0][0] = container1
+layout[0][1] = container2
+layout[0][2] = container3
+layout[0][3] = container4
+layout[0][4] = container5
 
 # Test case for running:
-# Load.run(layout, [(unload_container, (1, 3))], [(load_container, (1, 4))])
+Load.run(layout, [(container1, (0, 0))], [(container2, (0, 1))])
+
+for x in range(len(layout)):  # Rows
+    for y in range(len(layout[x])):  # Columns
+        container = layout[x][y]
+        print(f"({x},{y}): {container.name}, {container.weight}")
 
 # Test case for heuristic: (may still be glitchy with multiple containers in the same column)
 # h = Load.calc_heuristic(layout, [(unload_container, (0, 0))], [(load_container, (0, 1))])
