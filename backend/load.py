@@ -4,12 +4,26 @@ Purpose of class Load:
 """
 
 import queue
+import copy
 
 # for testing
 class Container:
     def __init__(self, name = "UNUSED", weight = 0):
         self.name = name
         self.weight = weight
+    
+    def __lt__(self, other):
+        if isinstance(other, Container):
+            return self.name < other.name
+        return NotImplemented
+
+    def __eq__(self, other):
+        if isinstance(other, Container):
+            return self.name == other.name and self.weight == other.weight
+        return NotImplemented
+
+    def __hash__(self):
+        return hash((self.name, self.weight))
 
 # cannot do Container == Container right now programatically
 
@@ -39,7 +53,7 @@ class Load:
         # pair stores (f, g, h, state)
         # f = g (cost) + h (heuristic)
         initial_h = Load.calc_heuristic(ship_layout, full_unload_list, full_load_list)
-        frontier.put((initial_h, 0, initial_h, ship_layout.copy(), full_unload_list, full_load_list))
+        frontier.put((initial_h, 0, initial_h, copy.deepcopy(ship_layout), full_unload_list, full_load_list))
 
         # loops for each state in queue
         while not frontier.empty():
@@ -77,7 +91,7 @@ class Load:
                 if(current_cords == desired_cords):
                     continue
                 for empty_spot in empty_spots:
-                    layout = current_layout.copy()
+                    layout = copy.deepcopy(current_layout)
                     if(current_cords!=(8,0)):
                         layout[current_cords[0]][current_cords[1]] = Container()
                     
@@ -93,7 +107,7 @@ class Load:
 
                     current_cords = empty_spot
 
-                    stuff = (current_cost + cost + h, current_cost + cost, h, layout, unload_list, load_list)
+                    stuff = (current_cost + cost + h, current_cost + cost, h, copy.deepcopy(layout), unload_list, load_list)
 
                     frontier.put(stuff)
 
@@ -116,7 +130,7 @@ class Load:
 
                 # move to every possible empty spot
                 for empty_cord in empty_spots:
-                    layout = current_layout.copy()
+                    layout = copy.deepcopy(current_layout)
                     to_spot = layout[empty_cord[0]][empty_cord[1]]
 
                     # TODO: calculate cost. check if container is part of load_list or unload_list
@@ -132,7 +146,7 @@ class Load:
                     frontier.put(stuff)
 
                 # TODO: unload that container
-                layout = current_layout.copy()
+                layout = copy.deepcopy(current_layout)
                 from_container = Container()
 
                 cost = abs(8 - r) + c
@@ -264,19 +278,19 @@ container4 = Container("D", 500)
 container5 = Container("F", 300)
 
 # 8 x 12
-layout = [[Container() for i in range(0,12)] for j in range(0,8)]
-layout[0][0] = container1
+test_layout = [[Container() for i in range(0,12)] for j in range(0,8)]
+test_layout[0][0] = container1
 # layout[0][1] = container2
-layout[0][2] = container3
-layout[0][3] = container4
-layout[0][4] = container5
+test_layout[0][2] = container3
+test_layout[0][3] = container4
+test_layout[0][4] = container5
 
 # Test case for running:
-Load.run(layout, [(container1, (0, 0))], [])
+Load.run(test_layout, [(container1, (0, 0))], [])
 
-for x in range(len(layout)):  # Rows
-    for y in range(len(layout[x])):  # Columns
-        container = layout[x][y]
+for x in range(len(test_layout)):  # Rows
+    for y in range(len(test_layout[x])):  # Columns
+        container = test_layout[x][y]
         print(f"({x},{y}): {container.name}, {container.weight}")
 
 # Test case for heuristic: (may still be glitchy with multiple containers in the same column)
