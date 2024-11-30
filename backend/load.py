@@ -51,16 +51,15 @@ class Load:
                 return Load.reconstruct_path(solution_map, current_layout)
 
             # check if state is already explored
-            if(explored[hashable_layout]==True):
+            if explored.get(hashable_layout, False):
                 continue
-
-            # note that current state is explored (map / dictionary)
-            explored[hashable_layout] = True
+            else:
+                explored[hashable_layout] = True
 
             # finds all empty spots in each column. 3rd line filters
             # find all topmost containers in each column
             empty_spots = Load.find_top_empty_containers(current_layout)
-            top_containers = [(x, y - 1) for x, y in empty_spots if x != 0]
+            top_containers = [(x - 1, y) for x, y in empty_spots if x != 0]
             empty_spots = [cord for cord in empty_spots if cord[0] != 8]
 
             # TODO: add all possible moves to the frontier
@@ -80,48 +79,57 @@ class Load:
                 for empty_spot in empty_spots:
                     layout = current_layout.copy()
                     if(current_cords!=(8,0)):
-                        layout[current_cords[0], current_cords[1]] = Container()
-                    layout[empty_spot[0], empty_spot[1]] = container
-                    info[2] = empty_spot.copy()
+                        layout[current_cords[0]][current_cords[1]] = Container()
+                    
+                    layout[empty_spot[0]][empty_spot[1]] = container
+                    
+                    info = list(info)
+                    info[2] = empty_spot
+                    info = tuple(info)
+
 
                     cost = abs(empty_spot[0] - current_cords[0]) + abs(empty_spot[1] - current_cords[1])
                     h = Load.calc_heuristic(layout, unload_list, load_list)
 
                     current_cords = empty_spot
-                    frontier.put(current_cost + cost + h, current_cost + cost, h, layout, unload_list, load_list)
+
+                    stuff = (current_cost + cost + h, current_cost + cost, h, layout, unload_list, load_list)
+
+                    frontier.put(stuff)
 
             # every top_container containers to empty_spots or unload
             for container_cord in top_containers:
                 r, c = container_cord
-                from_container = current_layout[r, c]
+                from_container = current_layout[r][c]
 
                 is_on_load_list = False
                 for load_container in load_list: # TODO: doesn't deal with duplicates
-                    if(load_container.name == from_container.name):
+                    if(load_container[0].name == from_container.name):
                         is_on_load_list = True
                         break
 
                 is_on_unload_list = False
                 for unload_container in unload_list: # TODO: doesn't deal with duplicates
-                    if(unload_container.name == from_container.name):
+                    if(unload_container[0].name == from_container.name):
                         is_on_unload_list = True
                         break
 
                 # move to every possible empty spot
                 for empty_cord in empty_spots:
                     layout = current_layout.copy()
-                    to_spot = layout[empty_cord[0], empty_cord[1]]
+                    to_spot = layout[empty_cord[0]][empty_cord[1]]
 
                     # TODO: calculate cost. check if container is part of load_list or unload_list
 
                     # swap
-                    temp_container = to_spot.copy()
+                    temp_container = to_spot
                     to_spot = from_container
                     from_container = temp_container
 
                     cost = abs(empty_cord[0] - r) + abs(empty_cord[1] - c)
                     h = Load.calc_heuristic(layout, unload_list, load_list)
-                    frontier.put(current_cost + cost + h, current_cost + cost, h, layout, unload_list, load_list)
+                    stuff = (current_cost + cost + h, current_cost + cost, h, layout, unload_list, load_list)
+                    frontier.put(stuff)
 
                 # TODO: unload that container
                 layout = current_layout.copy()
@@ -129,7 +137,8 @@ class Load:
 
                 cost = abs(8 - r) + c
                 h = Load.calc_heuristic(layout, unload_list, load_list)
-                frontier.put(current_cost + cost + h, current_cost + cost, h, layout, unload_list, load_list)
+                stuff = (current_cost + cost + h, current_cost + cost, h, layout, unload_list, load_list)
+                frontier.put(stuff)
             
     # find highest empty slot in each column
     @staticmethod
@@ -256,14 +265,14 @@ container5 = Container("F", 300)
 
 # 8 x 12
 layout = [[Container() for i in range(0,12)] for j in range(0,8)]
-# layout[0][0] = container1
-layout[0][1] = container2
+layout[0][0] = container1
+# layout[0][1] = container2
 layout[0][2] = container3
 layout[0][3] = container4
 layout[0][4] = container5
 
 # Test case for running:
-Load.run(layout, [(container1, (0, 0))], [(container2, (0, 1))])
+Load.run(layout, [(container1, (0, 0))], [])
 
 for x in range(len(layout)):  # Rows
     for y in range(len(layout[x])):  # Columns
