@@ -54,24 +54,34 @@ class Load:
             # note that current state is explored (map / dictionary)
             explored[hashable_layout] = True
 
+            # finds all empty spots in each column. 3rd line filters
+            # find all topmost containers in each column
+            empty_spots = Load.find_top_empty_containers(current_layout)
+            top_containers = [(x, y - 1) for x, y in empty_spots if x != 0]
+            empty_spots = [cord for cord in empty_spots if cord[0] != 8]
+
             # TODO: add all possible moves to the frontier
-            # TODO: don't load already explored states into frontier (when frontier implemented)
-            # TODO: update load and unload list for each state
+            # don't load already explored states into frontier (when frontier implemented)
+            # update load and unload list for each state
             # TODO: keep track of previous states
-            top_containers = Load.find_top_empty_containers(current_layout)
+            # Moves:
+            # 1. Every container to load to empty_spots
+            # 2. Every container in top_containers to empty_spots
+            # 3. Every container in top_containers to unloaded
             frontier.put()
             
     # find highest empty slot in each column
     @staticmethod
     def find_top_empty_containers(current_layout):
-        top_containers = []
+        empty_spots = []
         transposed_layout = zip(*current_layout)
         for col, column in enumerate(transposed_layout): # iterate through columns
             for row, item in enumerate(column):
                 if(item.name == "UNUSED"):
-                    top_containers.append((row, col))
+                    empty_spots.append((row, col))
                     break
-        return top_containers
+            empty_spots.append((8, col))
+        return empty_spots
 
     # reconstruct path when solution is found
     @staticmethod
