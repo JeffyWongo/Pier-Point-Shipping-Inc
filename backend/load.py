@@ -94,23 +94,35 @@ class Load:
             for load_index, info in enumerate(load_list):
                 container, desired_cords, current_cords = info
                 if(current_cords == desired_cords):
+                    print(f"{load_index} is onboard")
                     continue
-
-                layout = copy.deepcopy(current_layout)
+                else:
+                    print(f"{load_index} is not onboard")
+                
                 # move directly to desired_cords
                 # check if empty
                 r, c = desired_cords
-                if(current_layout[r][c].name=="UNUSED"):
+                print(empty_spots)
+                print(c)
+                print(empty_spots[c])
+                print(desired_cords)
+                if(empty_spots[c]==desired_cords):
+                    layout = copy.deepcopy(current_layout)
+                    # print(f"h: {current_h}")
+                    Load.print_layout(layout)
                     layout[r][c] = container
 
-                    info = list(load_list[load_index])
-                    info[2] = desired_cords
-                    load_list[load_index] = tuple(info)
+                    new_load_list = copy.deepcopy(load_list)
+                    new_load_list[load_index] = (container, desired_cords, desired_cords)
 
                     cost = abs(8 - r) + c
-                    h = Load.calc_heuristic(layout, unload_list, load_list)
+                    h = Load.calc_heuristic(layout, unload_list, new_load_list)
+
+                    print(desired_cords)
+                    print(f"{current_cost + cost}, {h}")
+                    Load.print_layout(layout)
                     
-                    stuff = (current_cost + cost + h, current_cost + cost, h, layout, unload_list, load_list)
+                    stuff = (current_cost + cost + h, current_cost + cost, h, layout, unload_list, new_load_list)
                     frontier.put(stuff)
 
                 # for empty_spot in empty_spots:
@@ -320,6 +332,10 @@ class Load:
 
     @staticmethod
     def print_layout(test_layout):
+        if(test_layout==None):
+            print("Cannot print layout")
+            return
+
         for x, row in enumerate(reversed(test_layout)):
             row_output = ""
             for y, container in enumerate(row):
@@ -344,15 +360,14 @@ container1 = Container("A", 120)
 container2 = Container("B", 200)
 container3 = Container("C", 400)
 container4 = Container("D", 500)
-container5 = Container("F", 300)
+container5 = Container("E", 2200)
+container6 = Container("F", 300)
 
 # 8 x 12
 test_layout = [[Container() for i in range(0,12)] for j in range(0,8)]
 # test_layout[0][0] = container1
-# test_layout[0][1] = container2
+# test_layout[1][0] = container2
 # test_layout[0][2] = container3
-# test_layout[0][3] = container4
-# test_layout[0][4] = container5
 # test_layout[1][2] = container5
 
 # Test case for running:
@@ -364,8 +379,13 @@ test_layout = [[Container() for i in range(0,12)] for j in range(0,8)]
 # test_layout2 = Load.run(test_layout, [(container5, (1, 2)), (container3, (0, 2))], [])
 # Load.print_layout(test_layout2)
 # loading
-test_layout2 = Load.run(test_layout, [], [(container4, (0, 3))])
+# test_layout2 = Load.run(test_layout, [], [(container4, (0, 3))])
+# Load.print_layout(test_layout2)
+test_layout2 = Load.run(test_layout, [], [(container4, (0, 0)), (container5, (0, 11))])
 Load.print_layout(test_layout2)
+# both
+# test_layout2 = Load.run(test_layout, [(container1, (0, 0))], [(container4, (0, 3)), (container5, (0, 2))])
+# Load.print_layout(test_layout2)
 
 # Test case for heuristic: (may still be glitchy with multiple containers in the same column)
 # h = Load.calc_heuristic(layout, [(unload_container, (0, 0))], [(load_container, (0, 1))])
