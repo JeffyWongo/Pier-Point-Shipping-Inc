@@ -19,13 +19,13 @@ class Container:
 
     def __eq__(self, other):
         if isinstance(other, Container):
-            return self.name == other.name and self.weight == other.weight
+            return self.name == other.name
         return NotImplemented
 
     def __hash__(self):
         return hash((self.name, self.weight))
 
-# cannot do Container == Container right now programatically
+
 
 class Load:
     # function called by main program
@@ -60,11 +60,12 @@ class Load:
             _, current_cost, current_h, current_layout, unload_list, load_list = frontier.get()
             hashable_layout = tuple(tuple(row) for row in current_layout)
 
+            # print(f"{current_cost}, {current_h}")
+            # Load.print_layout(current_layout)
+
             # check goal state
             if(Load.check_goal_state(current_layout, unload_list, load_list)):
-                print("GOAL")
-                print(current_cost)
-                print(current_h)
+                print(f"GOAL: {current_cost}, {current_h}")
                 return Load.reconstruct_path(solution_map, current_layout)
 
             # check if state is already explored
@@ -72,15 +73,6 @@ class Load:
                 continue
             else:
                 explored[hashable_layout] = True
-
-            # print current state
-            # print("State")
-            # print(unload_list[0][2])
-            # print(unload_list[1][2])
-            # print(current_cost)
-            # print(current_h)
-            # Load.print_layout(current_layout)
-            
 
             # finds all empty spots in each column. 3rd line filters
             # find all topmost containers in each column
@@ -98,7 +90,7 @@ class Load:
             # 3. Every container in top_containers to unloaded
 
             # every load_list containers to empty_spots
-            # TODO: test after unload
+            # TODO: load containers onboard
             for info in load_list:
                 container, desired_cords, current_cords = info
                 if(current_cords == desired_cords):
@@ -148,11 +140,20 @@ class Load:
                     if(empty_cord[1]==c):
                         continue
 
+                    highest_empty_r = r
+                    for col_index in range(min(c, empty_cord[1]), max(c, empty_cord[1]) + 1):
+                        if(col_index==c):
+                            continue
+                        # if(c==0 and (empty_cord[1]>=1 and empty_cord[1]<=3)):
+                        #     print(f"{col_index}, {empty_spots[col_index][0]}, {highest_empty_r}")
+                        highest_empty_r = max(empty_spots[col_index][0], highest_empty_r)
+                    
+                    # if(c==0 and (empty_cord[1]>=1 and empty_cord[1]<=3)):
+                    #     print(f"{c} to {empty_cord[1]}: {r} and {empty_cord[0]}, {highest_empty_r}")
+
                     layout = copy.deepcopy(current_layout)
 
                     # assumes heuristic functions will take care of everything
-                    # TODO: check if container is part of load_list or unload_list
-                    # TODO: CONTAINERS CAN CURRENTLY PHASE THROUGH EACH OTHER. FIX THAT
                     if is_on_unload_list:
                         unload_item = list(unload_list[unload_index])
                         unload_item[2] = empty_cord
@@ -165,13 +166,12 @@ class Load:
                     )
 
 
-                    cost = abs(empty_cord[0] - r) + abs(empty_cord[1] - c)
+                    cost = abs(empty_cord[0] - highest_empty_r) + abs(empty_cord[1] - c) + abs(r - highest_empty_r)
                     h = Load.calc_heuristic(layout, unload_list, load_list)
                     stuff = (current_cost + cost + h, current_cost + cost, h, layout, unload_list, load_list)
                     
                     frontier.put(stuff)
 
-                # TODO: unload that container (only if on unload list)
                 if is_on_unload_list:
                     layout = copy.deepcopy(current_layout)
                     layout[r][c] = Container()
@@ -242,8 +242,6 @@ class Load:
                 return False
 
         return True
-
-    # check if goal of loading is done
 
     # calculate the total heuristic
     @staticmethod
@@ -332,12 +330,18 @@ container5 = Container("F", 300)
 test_layout = [[Container() for i in range(0,12)] for j in range(0,8)]
 test_layout[0][0] = container1
 test_layout[0][1] = container2
-# test_layout[0][2] = container3
+test_layout[0][2] = container3
 # test_layout[0][3] = container4
 # test_layout[0][4] = container5
+test_layout[1][2] = container5
 
 # Test case for running:
-test_layout2 = Load.run(test_layout, [(container1, (0, 0)), (container2, (0, 1))], [])
+# test_layout2 = Load.run(test_layout, [(container1, (0, 0))], [])
+# Load.print_layout(test_layout2)
+# unloading
+# test_layout2 = Load.run(test_layout, [(container1, (0, 0)), (container3, (0, 2))], [])
+# Load.print_layout(test_layout2)
+test_layout2 = Load.run(test_layout, [(container5, (1, 2)), (container3, (0, 2))], [])
 Load.print_layout(test_layout2)
 
 # Test case for heuristic: (may still be glitchy with multiple containers in the same column)
