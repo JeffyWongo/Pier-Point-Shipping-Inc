@@ -90,41 +90,62 @@ class Load:
             # 3. Every container in top_containers to unloaded
 
             # every load_list containers to empty_spots
-            # TODO: load containers onboard
-            for info in load_list:
+            # TODO: load containers onboard to other possible empty spots
+            for load_index, info in enumerate(load_list):
                 container, desired_cords, current_cords = info
                 if(current_cords == desired_cords):
                     continue
-                for empty_spot in empty_spots:
-                    layout = copy.deepcopy(current_layout)
-                    if(current_cords!=(8,0)):
-                        layout[current_cords[0]][current_cords[1]] = Container()
-                    
-                    layout[empty_spot[0]][empty_spot[1]] = container.copy()
-                    
-                    info = list(info)
-                    info[2] = empty_spot
-                    info = tuple(info)
 
+                layout = copy.deepcopy(current_layout)
+                # move directly to desired_cords
+                # check if empty
+                r, c = desired_cords
+                if(current_layout[r][c].name=="UNUSED"):
+                    layout[r][c] = container
 
-                    cost = abs(empty_spot[0] - current_cords[0]) + abs(empty_spot[1] - current_cords[1])
+                    info = list(load_list[load_index])
+                    info[2] = desired_cords
+                    load_list[load_index] = tuple(info)
+
+                    cost = abs(8 - r) + c
                     h = Load.calc_heuristic(layout, unload_list, load_list)
-
-                    current_cords = empty_spot
-
-                    stuff = (current_cost + cost + h, current_cost + cost, h, copy.deepcopy(layout), unload_list, load_list)
                     
+                    stuff = (current_cost + cost + h, current_cost + cost, h, layout, unload_list, load_list)
                     frontier.put(stuff)
+
+                # for empty_spot in empty_spots:
+                #     layout = copy.deepcopy(current_layout)
+                #     if(current_cords!=(8,0)):
+                #         layout[current_cords[0]][current_cords[1]] = Container()
+                    
+                #     layout[empty_spot[0]][empty_spot[1]] = container.copy()
+                    
+                #     info = list(info)
+                #     info[2] = empty_spot
+                #     info = tuple(info)
+
+
+                #     cost = abs(empty_spot[0] - current_cords[0]) + abs(empty_spot[1] - current_cords[1])
+                #     h = Load.calc_heuristic(layout, unload_list, load_list)
+
+                #     current_cords = empty_spot
+
+                #     stuff = (current_cost + cost + h, current_cost + cost, h, copy.deepcopy(layout), unload_list, load_list)
+                    
+                #     frontier.put(stuff)
 
             # every top_container containers to empty_spots or unload
             for container_cord in top_containers:
                 r, c = container_cord
 
+                #TODO: what if move the loaded container around
                 is_on_load_list = False
                 for load_index, load_container in enumerate(load_list): # TODO: doesn't deal with duplicates
                     if(load_container[0].name == current_layout[r][c].name):
                         is_on_load_list = True
                         break
+                if(is_on_load_list):
+                    continue
 
                 is_on_unload_list = False
                 unload_index = -1
@@ -291,7 +312,6 @@ class Load:
     def calc_load_h(load_list):
         sum = 0
         for _, location, current_location in load_list:
-            # distance to (9,1)
             r, c = location
             x, y = current_location
             # sum += Load.load_unload_heuristic(r, c)
@@ -328,12 +348,12 @@ container5 = Container("F", 300)
 
 # 8 x 12
 test_layout = [[Container() for i in range(0,12)] for j in range(0,8)]
-test_layout[0][0] = container1
-test_layout[0][1] = container2
-test_layout[0][2] = container3
+# test_layout[0][0] = container1
+# test_layout[0][1] = container2
+# test_layout[0][2] = container3
 # test_layout[0][3] = container4
 # test_layout[0][4] = container5
-test_layout[1][2] = container5
+# test_layout[1][2] = container5
 
 # Test case for running:
 # test_layout2 = Load.run(test_layout, [(container1, (0, 0))], [])
@@ -341,7 +361,10 @@ test_layout[1][2] = container5
 # unloading
 # test_layout2 = Load.run(test_layout, [(container1, (0, 0)), (container3, (0, 2))], [])
 # Load.print_layout(test_layout2)
-test_layout2 = Load.run(test_layout, [(container5, (1, 2)), (container3, (0, 2))], [])
+# test_layout2 = Load.run(test_layout, [(container5, (1, 2)), (container3, (0, 2))], [])
+# Load.print_layout(test_layout2)
+# loading
+test_layout2 = Load.run(test_layout, [], [(container4, (0, 3))])
 Load.print_layout(test_layout2)
 
 # Test case for heuristic: (may still be glitchy with multiple containers in the same column)
