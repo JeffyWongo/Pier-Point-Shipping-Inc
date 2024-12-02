@@ -99,7 +99,7 @@ class Load:
                 # move directly to desired_cords
                 # check if empty
                 r, c = desired_cords
-                if(empty_spots[c]==desired_cords):
+                if(desired_cords in empty_spots):
                     layout = copy.deepcopy(current_layout)
                     layout[r][c] = container
 
