@@ -63,19 +63,10 @@ class Load:
         while not frontier.empty():
             _, current_cost, current_h, current_layout, unload_list, load_list = frontier.get()
 
-            # print(f"{current_cost}, {current_h}")
-            # Load.print_layout(current_layout)
-
             # check goal state
             if(Load.check_goal_state(current_layout, unload_list, load_list)):
                 print(f"GOAL: {current_cost}, {current_h}")
-                return Load.reconstruct_path(solution_map, current_layout)
-
-            # check if state is already explored
-            # if explored.get(hashable_current_layout, False):
-            #     continue
-            # else:
-            #     explored[hashable_current_layout] = True
+                return Load.reconstruct_path(solution_map, ship_layout, current_layout)
 
             # finds all empty spots in each column. 3rd line filters
             # find all topmost containers in each column
@@ -155,12 +146,7 @@ class Load:
                     for col_index in range(min(c, empty_cord[1]), max(c, empty_cord[1]) + 1):
                         if(col_index==c):
                             continue
-                        # if(c==0 and (empty_cord[1]>=1 and empty_cord[1]<=3)):
-                        #     print(f"{col_index}, {empty_spots[col_index][0]}, {highest_empty_r}")
                         highest_empty_r = max(empty_spots[col_index][0], highest_empty_r)
-                    
-                    # if(c==0 and (empty_cord[1]>=1 and empty_cord[1]<=3)):
-                    #     print(f"{c} to {empty_cord[1]}: {r} and {empty_cord[0]}, {highest_empty_r}")
 
                     layout = copy.deepcopy(current_layout)
 
@@ -185,11 +171,11 @@ class Load:
                         explored[hashable_layout] = True
                         # key is layout (hashable). value is previous layout
                         solution_map[hashable_layout] = current_layout
-                    # add new state to frontier
-                    cost = abs(8 - r) + c
-                    h = Load.calc_heuristic(layout, unload_list, load_list)
-                    stuff = (current_cost + cost + h, current_cost + cost, h, layout, unload_list, load_list)
-                    frontier.put(stuff)
+                        # add new state to frontier
+                        cost = abs(8 - r) + c
+                        h = Load.calc_heuristic(layout, unload_list, load_list)
+                        stuff = (current_cost + cost + h, current_cost + cost, h, layout, unload_list, load_list)
+                        frontier.put(stuff)
 
                 if is_on_unload_list:
                     layout = copy.deepcopy(current_layout)
@@ -209,11 +195,11 @@ class Load:
                         explored[hashable_layout] = True
                         # key is layout (hashable). value is previous layout
                         solution_map[hashable_layout] = current_layout
-                    # add new state to frontier
-                    cost = abs(8 - r) + c
-                    h = Load.calc_heuristic(layout, unload_list, load_list)
-                    stuff = (current_cost + cost + h, current_cost + cost, h, layout, unload_list, load_list)
-                    frontier.put(stuff)
+                        # add new state to frontier
+                        cost = abs(8 - r) + c
+                        h = Load.calc_heuristic(layout, unload_list, load_list)
+                        stuff = (current_cost + cost + h, current_cost + cost, h, layout, unload_list, load_list)
+                        frontier.put(stuff)
         print("solution not found")
             
     # find highest empty slot in each column
@@ -231,21 +217,25 @@ class Load:
 
     # reconstruct path when solution is found
     @staticmethod
-    def reconstruct_path(solution_map, current_layout):
-        # TODO: reconstruct solution
+    def reconstruct_path(solution_map, initial_layout, final_layout):
+        # TODO: need initial state for comparsion
         path = []
-        layout = current_layout
-        # current = tuple(tuple(row) for row in current_layout)
-        
-        while layout is not None:
+        layout = final_layout.copy()
+
+        while True:
             path.append(layout)
-            Load.print_layout(layout)
-            print("===================")
-            time.sleep(2)
             hashable_layout = tuple(tuple(row) for row in layout)
 
             previous_layout = solution_map[hashable_layout]
             layout = previous_layout
+
+            Load.print_layout(layout)
+            print("===================")
+            time.sleep(2)
+
+            if layout is None or Load.equal_states(layout, initial_layout):
+                path.append(layout)
+                break
 
         path.reverse()
         
@@ -256,6 +246,15 @@ class Load:
         
         return path
         # return current_layout
+
+    def equal_states(layout1, layout2):
+        for r in range(8):
+            for c in range(12):
+                container1 = layout1[r][c]
+                container2 = layout2[r][c]
+                if container1.name != container2.name or container1.weight != container2.weight:
+                    return False
+        return True
 
     # check if goal state is satisfied
     # TODO: works fine now. but can be simpler after frontier is finished
@@ -355,15 +354,6 @@ class Load:
 
 
 
-# testing
-# Load.run(ship.Ship)
-# print(ship.Ship.vector[8][12])
-
-# container = Container("A", 120)
-# print(container.name)
-# print(container.weight)
-
-
 # Testing
 container1 = Container("A", 120)
 container2 = Container("B", 200)
@@ -375,12 +365,14 @@ container6 = Container("F", 300)
 # 8 x 12
 test_layout = [[Container() for i in range(0,12)] for j in range(0,8)]
 test_layout[0][0] = container1
-# test_layout[1][0] = container2
+test_layout[1][0] = container2
 test_layout[0][2] = container3
-# test_layout[1][2] = container5
+test_layout[1][2] = container5
 
 # Test case for running:
 # unloading
+# test_layout2 = Load.run(test_layout, [(container1, (0, 0))], [])
+# Load.print_layout(test_layout2)
 test_layout2 = Load.run(test_layout, [(container1, (0, 0)), (container3, (0, 2))], [])
 Load.print_layout(test_layout2)
 # test_layout2 = Load.run(test_layout, [(container5, (1, 2)), (container3, (0, 2))], [])
