@@ -343,14 +343,14 @@ container6 = Container("F", 300)
 # 8 x 12
 test_layout = [[Container() for i in range(0,12)] for j in range(0,8)]
 test_layout[0][0] = container1
-# test_layout[1][0] = container2
+test_layout[1][0] = container2
 test_layout[0][2] = container3
-# test_layout[1][2] = container5
+test_layout[1][2] = container4
 
 # Test case for running:
 # unloading
 # test_output = Load.run(test_layout, [(container1, (0, 0))], [])
-test_output = Load.run(test_layout, [(container1, (0, 0)), (container3, (0, 2))], [(container6, (0, 11))]) # TODO: moves not optimal here
+test_output = Load.run(test_layout, [(container1, (0, 0)), (container3, (0, 2))], [(container6, (0, 11))])
 # test_output = Load.run(test_layout, [(container5, (1, 2)), (container3, (0, 2))], [])
 # loading
 # test_output = Load.run(test_layout, [], [(container4, (0, 3))])
@@ -363,7 +363,7 @@ for item in test_output:
     Load.print_layout(item)
     print("=============")
 
-    
+
 # Test case for heuristic: (may still be glitchy with multiple containers in the same column)
 # h = Load.calc_heuristic(layout, [(unload_container, (0, 0))], [(load_container, (0, 1))])
 # print(h)
