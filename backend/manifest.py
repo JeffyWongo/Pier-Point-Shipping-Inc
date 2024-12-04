@@ -14,6 +14,7 @@
 
 import sys
 from ship import Ship
+from container import Container
 
 # INPUT, tested 
 def INPUT_manifest(input_file):
@@ -40,7 +41,14 @@ def INPUT_manifest(input_file):
             weight = int(parts[1].strip("{}"))
             name = parts[2]
 
-            ship.set_location(y, x, weight, name)
+            # CASE MANAGEMENT: for name, UNUSED, NAN
+            if name == "UNUSED":
+                ship.grid[y][x] = "Place" # placeholder, meaning can put stuffs
+            elif name == "NAN":
+                ship.grid[y][x] = "NAN" # permanetly unusale
+            else:
+                container = Container(weight = weight, name = name)
+                ship.place_container(y, x, container)
 
         except ValueError as val:
             print(f"Error processing line '{line.strip()}': {val}")
@@ -63,12 +71,9 @@ def OUTPUT_manifest(ship, input_manifest):
 
     try:
         with open(output_manifest, 'w') as file:
-            for x in range(12):
-                for y in range(8):
-                    location = ship.get_location(y, x)
-                    if location["name"] != "UNUSED":
-                        file.write(f"[{y + 1}, {x + 1}], {{{location['weight']}}}, {location['name']}\n")
-        print(f"Output written to '{output_manifest} successfully.'")
+            for container in ship.get_ALLcontainerS(): # updated for container compatibility
+                file.write(f"[{container.y + 1}, {container.x + 1}], {{{container.weight}}}, {container.name}\n")
+        print(f"Output written to '{output_manifest}' successfully.")
     except Exception as esc:
         print(f"Error writting output file: {esc}")
         sys.exit(1)
