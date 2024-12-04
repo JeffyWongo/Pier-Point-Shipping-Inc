@@ -5,7 +5,6 @@ Purpose of class Load:
 
 import queue
 import copy
-import time
 
 # for testing
 class Container:
@@ -51,11 +50,9 @@ class Load:
         explored = {}
         solution_map = {}
         
-        # pair stores (f, g, h, state)
         # f = g (cost) + h (heuristic)
         initial_h = Load.calc_heuristic(ship_layout, full_unload_list, full_load_list)
         frontier.put((initial_h, 0, initial_h, copy.deepcopy(ship_layout), full_unload_list, full_load_list))
-        # key is layout (hashable). value is previous layout
         hashed_layout = tuple(tuple(row) for row in ship_layout)
         explored[hashed_layout] = True
         solution_map[hashed_layout] = None
@@ -81,7 +78,6 @@ class Load:
             # 3. Every container in top_containers to unloaded
 
             # every load_list containers to empty_spots
-            # TODO: load containers onboard to other possible empty spots
             for load_index, info in enumerate(load_list):
                 container, desired_cords, current_cords = info
                 if(current_cords == desired_cords):
@@ -91,19 +87,19 @@ class Load:
                 # check if empty
                 r, c = desired_cords
                 if(desired_cords in empty_spots):
-                    layout = copy.deepcopy(current_layout)
-                    layout[r][c] = container
+                    new_layout = copy.deepcopy(current_layout)
+                    new_layout[r][c] = container
 
                     new_load_list = copy.deepcopy(load_list)
                     new_load_list[load_index] = (container, desired_cords, desired_cords)
 
-                    Load.push_new_state(frontier, explored, solution_map, layout, current_layout, unload_list, load_list, current_cost, r, c)
+                    Load.push_new_state(frontier, explored, solution_map, new_layout, current_layout, unload_list, load_list, current_cost, (r,c), (8, 0), highest_empty_r=0)
 
             # every top_container containers to empty_spots or unload
             for container_cord in top_containers:
                 r, c = container_cord
 
-                #TODO: what if move the loaded container around
+                # don't move containers on load_list
                 is_on_load_list = False
                 for load_index, load_container in enumerate(load_list): # TODO: doesn't deal with duplicates
                     if(load_container[0].name == current_layout[r][c].name):
@@ -127,13 +123,7 @@ class Load:
                         continue
 
                     # find row of highest container between container to move and empty spot
-                    highest_empty_r = r
-                    for col_index in range(min(c, empty_cord[1]), max(c, empty_cord[1]) + 1):
-                        if(col_index==c):
-                            continue
-                        highest_empty_r = max(empty_spots[col_index][0], highest_empty_r)
-
-                    layout = copy.deepcopy(current_layout)
+                    highest_empty_r = Load.highest_r_between(r, c, empty_cord, empty_spots)
 
                     # assumes heuristic functions will take care of everything
                     if is_on_unload_list:
@@ -142,36 +132,24 @@ class Load:
                         unload_list[unload_index] = tuple(unload_item)
 
                     # swap
-                    layout[empty_cord[0]][empty_cord[1]], layout[r][c] = (
-                        layout[r][c], 
-                        layout[empty_cord[0]][empty_cord[1]]
+                    new_layout = copy.deepcopy(current_layout)
+                    new_layout[empty_cord[0]][empty_cord[1]], new_layout[r][c] = (
+                        new_layout[r][c], 
+                        new_layout[empty_cord[0]][empty_cord[1]]
                     )
 
-                    hashable_layout = tuple(tuple(row) for row in layout)
+                    Load.push_new_state(frontier, explored, solution_map, new_layout, current_layout, unload_list, load_list, current_cost, empty_cord, (r, c), highest_empty_r)
 
-                    # check if state is already explored
-                    hashable_layout = tuple(tuple(row) for row in layout)
-                    if explored.get(hashable_layout, False):
-                        continue
-                    else:
-                        explored[hashable_layout] = True
-                        # key is layout (hashable). value is previous layout
-                        solution_map[hashable_layout] = current_layout
-                        # add new state to frontier
-                        cost = abs(empty_cord[0] - r) + abs(empty_cord[1] - c)
-                        h = Load.calc_heuristic(layout, unload_list, load_list)
-                        stuff = (current_cost + cost + h, current_cost + cost, h, layout, unload_list, load_list)
-                        frontier.put(stuff)
-
+                # only unload containers on unload_list
                 if is_on_unload_list:
-                    layout = copy.deepcopy(current_layout)
-                    layout[r][c] = Container()
+                    new_layout = copy.deepcopy(current_layout)
+                    new_layout[r][c] = Container()
 
                     unload_item = list(unload_list[unload_index])
                     unload_item[2] = (8,0)
                     unload_list[unload_index] = tuple(unload_item)
                     
-                    Load.push_new_state(frontier, explored, solution_map, layout, current_layout, unload_list, load_list, current_cost, r, c)
+                    Load.push_new_state(frontier, explored, solution_map, new_layout, current_layout, unload_list, load_list, current_cost, (8,0), (r, c), highest_empty_r=0)
         print("solution not found")
             
     # find highest empty slot in each column
@@ -187,8 +165,19 @@ class Load:
             empty_spots.append((8, col))
         return empty_spots
 
+    # find row of the space above the highest container between container to move and empty spot
     @staticmethod
-    def push_new_state(frontier, explored, solution_map, new_layout, current_layout, unload_list, load_list, current_cost, r, c):
+    def highest_r_between(r, c, empty_cord, empty_spots):
+        highest_empty_r = r
+        for col_index in range(min(c, empty_cord[1]), max(c, empty_cord[1]) + 1):
+            if(col_index==c):
+                continue
+            highest_empty_r = max(empty_spots[col_index][0], highest_empty_r)
+        return highest_empty_r
+
+    # pushes new state to frontier
+    @staticmethod
+    def push_new_state(frontier, explored, solution_map, new_layout, current_layout, unload_list, load_list, current_cost, new_spot, old_spot, highest_empty_r):
         # make layout hashable
         hashable_layout = tuple(tuple(row) for row in new_layout)
 
@@ -202,10 +191,14 @@ class Load:
 
         # Calculate the cost and heuristic
         # TODO: cost will vary
-        cost = abs(8 - r) + c
+        new_r, new_c = new_spot
+        old_r, old_c = old_spot
+
+        cost = abs(highest_empty_r - old_r) + abs(new_r - highest_empty_r) + abs(old_c - new_c)
         h = Load.calc_heuristic(new_layout, unload_list, load_list)
 
         # Add the new state to the frontier
+        # pair stores (f, g, h, state, unload_list, load_list)
         frontier.put((current_cost + cost + h, current_cost + cost, h, new_layout, unload_list, load_list))
 
     # reconstruct path when solution is found
@@ -345,27 +338,27 @@ test_layout = [[Container() for i in range(0,12)] for j in range(0,8)]
 test_layout[0][0] = container1
 test_layout[1][0] = container2
 test_layout[0][2] = container3
-test_layout[1][2] = container5
+# test_layout[1][2] = container5
 
 # Test case for running:
 # unloading
-# test_layout2 = Load.run(test_layout, [(container1, (0, 0))], [])
-# Load.print_layout(test_layout2)
-test_output = Load.run(test_layout, [(container1, (0, 0)), (container3, (0, 2))], []) # TODO: moves not optimal here
+# test_output = Load.run(test_layout, [(container1, (0, 0))], [])
+# test_output = Load.run(test_layout, [(container1, (0, 0)), (container3, (0, 2))], [])
+# test_output = Load.run(test_layout, [(container5, (1, 2)), (container3, (0, 2))], [])
+# loading
+# test_output = Load.run(test_layout, [], [(container4, (0, 3))])
+# test_output = Load.run(test_layout, [], [(container4, (0, 0)), (container5, (0, 11))])
+# both
+# test_output = Load.run(test_layout, [(container1, (0, 0))], [(container4, (0, 10)), (container5, (0, 11))])
+test_output = Load.run(test_layout, [(container1, (0, 0)), (container3, (0, 2))], [(container6, (0, 11))]) # TODO: solution not optimal. h is more than 0
+
+
 print("SOLUTION:")
 for item in test_output:
     Load.print_layout(item)
     print("=============")
-# test_layout2 = Load.run(test_layout, [(container5, (1, 2)), (container3, (0, 2))], [])
-# Load.print_layout(test_layout2)
-# loading
-# test_layout2 = Load.run(test_layout, [], [(container4, (0, 3))])
-# Load.print_layout(test_layout2)
-# test_layout2 = Load.run(test_layout, [], [(container4, (0, 0)), (container5, (0, 11))])
-# Load.print_layout(test_layout2)
-# both
-# test_layout2 = Load.run(test_layout, [(container1, (0, 0))], [(container4, (0, 10)), (container5, (0, 11))])
-# Load.print_layout(test_layout2)
+
+
 
 # Test case for heuristic: (may still be glitchy with multiple containers in the same column)
 # h = Load.calc_heuristic(layout, [(unload_container, (0, 0))], [(load_container, (0, 1))])
