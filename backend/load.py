@@ -97,7 +97,7 @@ class Load:
                     new_load_list = copy.deepcopy(load_list)
                     new_load_list[load_index] = (container, desired_cords, desired_cords)
 
-                    Load.push_new_state(frontier, explored, solution_map, layout, current_layout, unload_list, load_list, current_cost, r, c)
+                    Load.push_new_state(frontier, explored, solution_map, layout, current_layout, unload_list, new_load_list, current_cost, r, c)
 
             # every top_container containers to empty_spots or unload
             for container_cord in top_containers:
@@ -343,30 +343,27 @@ container6 = Container("F", 300)
 # 8 x 12
 test_layout = [[Container() for i in range(0,12)] for j in range(0,8)]
 test_layout[0][0] = container1
-test_layout[1][0] = container2
+# test_layout[1][0] = container2
 test_layout[0][2] = container3
-test_layout[1][2] = container5
+# test_layout[1][2] = container5
 
 # Test case for running:
 # unloading
-# test_layout2 = Load.run(test_layout, [(container1, (0, 0))], [])
-# Load.print_layout(test_layout2)
-test_output = Load.run(test_layout, [(container1, (0, 0)), (container3, (0, 2))], []) # TODO: moves not optimal here
+# test_output = Load.run(test_layout, [(container1, (0, 0))], [])
+test_output = Load.run(test_layout, [(container1, (0, 0)), (container3, (0, 2))], [(container6, (0, 11))]) # TODO: moves not optimal here
+# test_output = Load.run(test_layout, [(container5, (1, 2)), (container3, (0, 2))], [])
+# loading
+# test_output = Load.run(test_layout, [], [(container4, (0, 3))])
+# test_output = Load.run(test_layout, [], [(container4, (0, 0)), (container5, (0, 11))])
+# both
+# test_output = Load.run(test_layout, [(container1, (0, 0))], [(container4, (0, 10)), (container5, (0, 11))])
+
 print("SOLUTION:")
 for item in test_output:
     Load.print_layout(item)
     print("=============")
-# test_layout2 = Load.run(test_layout, [(container5, (1, 2)), (container3, (0, 2))], [])
-# Load.print_layout(test_layout2)
-# loading
-# test_layout2 = Load.run(test_layout, [], [(container4, (0, 3))])
-# Load.print_layout(test_layout2)
-# test_layout2 = Load.run(test_layout, [], [(container4, (0, 0)), (container5, (0, 11))])
-# Load.print_layout(test_layout2)
-# both
-# test_layout2 = Load.run(test_layout, [(container1, (0, 0))], [(container4, (0, 10)), (container5, (0, 11))])
-# Load.print_layout(test_layout2)
 
+    
 # Test case for heuristic: (may still be glitchy with multiple containers in the same column)
 # h = Load.calc_heuristic(layout, [(unload_container, (0, 0))], [(load_container, (0, 1))])
 # print(h)
