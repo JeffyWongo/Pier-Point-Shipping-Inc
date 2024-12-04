@@ -71,8 +71,19 @@ def OUTPUT_manifest(ship, input_manifest):
 
     try:
         with open(output_manifest, 'w') as file:
-            for container in ship.get_ALLcontainerS(): # updated for container compatibility
-                file.write(f"[{container.y + 1}, {container.x + 1}], {{{container.weight}}}, {container.name}\n")
+            for y in range(len(ship.grid)):
+                for x in range(len(ship.grid[0])):
+                    cell = ship.grid[y][x]
+                    y_format = str(y + 1).zfill(2) # cuz we need 01, 02
+                    x_format = str(x + 1).zfill(2)
+
+                    if isinstance(cell, Container): # container with a name
+                        weight_format = str(cell.weight).zfill(5) # format #####
+                        file.write(f"[{y_format}, {x_format}], {{{weight_format}}}, {cell.name}\n")
+                    elif cell == "NAN": # NAN container
+                        file.write(f"[{y_format}, {x_format}], {{00000}}, NAN\n")
+                    elif cell == "Place": # UNUSED container
+                        file.write(f"[{y_format}, {x_format}], {{00000}}, UNUSED\n")
         print(f"Output written to '{output_manifest}' successfully.")
     except Exception as esc:
         print(f"Error writting output file: {esc}")
