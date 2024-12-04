@@ -58,7 +58,6 @@ class Load:
         # key is layout (hashable). value is previous layout
         hashed_layout = tuple(tuple(row) for row in ship_layout)
         explored[hashed_layout] = True
-        # explored.get(hashed_layout, True)
         solution_map[hashed_layout] = None
 
         # loops for each state in queue
@@ -68,7 +67,7 @@ class Load:
             # check goal state
             if(Load.check_goal_state(current_layout, unload_list, load_list)):
                 print(f"GOAL: {current_cost}, {current_h}")
-                return Load.reconstruct_path(solution_map, ship_layout, current_layout)
+                return Load.reconstruct_path(solution_map, current_layout)
 
             # finds all empty spots in each column. 3rd line filters
             # find all topmost containers in each column
@@ -98,20 +97,7 @@ class Load:
                     new_load_list = copy.deepcopy(load_list)
                     new_load_list[load_index] = (container, desired_cords, desired_cords)
 
-                    
-                    # check if state is already explored
-                    hashable_layout = tuple(tuple(row) for row in layout)
-                    if explored.get(hashable_layout, False):
-                        continue
-                    else:
-                        explored[hashable_layout] = True
-                        # key is layout (hashable). value is previous layout
-                        solution_map[hashable_layout] = current_layout
-                    # add new state to frontier
-                    cost = abs(8 - r) + c
-                    h = Load.calc_heuristic(layout, unload_list, new_load_list)
-                    stuff = (current_cost + cost + h, current_cost + cost, h, layout, unload_list, new_load_list)
-                    frontier.put(stuff)
+                    Load.push_new_state(frontier, explored, solution_map, layout, current_layout, unload_list, load_list, current_cost, r, c)
 
             # every top_container containers to empty_spots or unload
             for container_cord in top_containers:
@@ -140,6 +126,7 @@ class Load:
                     if(empty_cord[1]==c):
                         continue
 
+                    # find row of highest container between container to move and empty spot
                     highest_empty_r = r
                     for col_index in range(min(c, empty_cord[1]), max(c, empty_cord[1]) + 1):
                         if(col_index==c):
@@ -160,6 +147,7 @@ class Load:
                         layout[empty_cord[0]][empty_cord[1]]
                     )
 
+                    hashable_layout = tuple(tuple(row) for row in layout)
 
                     # check if state is already explored
                     hashable_layout = tuple(tuple(row) for row in layout)
@@ -170,7 +158,7 @@ class Load:
                         # key is layout (hashable). value is previous layout
                         solution_map[hashable_layout] = current_layout
                         # add new state to frontier
-                        cost = abs(8 - r) + c
+                        cost = abs(empty_cord[0] - r) + abs(empty_cord[1] - c)
                         h = Load.calc_heuristic(layout, unload_list, load_list)
                         stuff = (current_cost + cost + h, current_cost + cost, h, layout, unload_list, load_list)
                         frontier.put(stuff)
@@ -179,25 +167,11 @@ class Load:
                     layout = copy.deepcopy(current_layout)
                     layout[r][c] = Container()
 
-                    cost = abs(8 - r) + c
                     unload_item = list(unload_list[unload_index])
                     unload_item[2] = (8,0)
                     unload_list[unload_index] = tuple(unload_item)
-                    h = Load.calc_heuristic(layout, unload_list, load_list)
                     
-                    # check if state is already explored
-                    hashable_layout = tuple(tuple(row) for row in layout)
-                    if explored.get(hashable_layout, False):
-                        continue
-                    else:
-                        explored[hashable_layout] = True
-                        # key is layout (hashable). value is previous layout
-                        solution_map[hashable_layout] = current_layout
-                        # add new state to frontier
-                        cost = abs(8 - r) + c
-                        h = Load.calc_heuristic(layout, unload_list, load_list)
-                        stuff = (current_cost + cost + h, current_cost + cost, h, layout, unload_list, load_list)
-                        frontier.put(stuff)
+                    Load.push_new_state(frontier, explored, solution_map, layout, current_layout, unload_list, load_list, current_cost, r, c)
         print("solution not found")
             
     # find highest empty slot in each column
@@ -213,9 +187,30 @@ class Load:
             empty_spots.append((8, col))
         return empty_spots
 
+    @staticmethod
+    def push_new_state(frontier, explored, solution_map, new_layout, current_layout, unload_list, load_list, current_cost, r, c):
+        # make layout hashable
+        hashable_layout = tuple(tuple(row) for row in new_layout)
+
+        # Check if the layout has already been explored
+        if explored.get(hashable_layout, False):
+            return
+        explored[hashable_layout] = True
+
+        # Record the current layout as the parent of the new layout in solution_map
+        solution_map[hashable_layout] = current_layout
+
+        # Calculate the cost and heuristic
+        # TODO: cost will vary
+        cost = abs(8 - r) + c
+        h = Load.calc_heuristic(new_layout, unload_list, load_list)
+
+        # Add the new state to the frontier
+        frontier.put((current_cost + cost + h, current_cost + cost, h, new_layout, unload_list, load_list))
+
     # reconstruct path when solution is found
     @staticmethod
-    def reconstruct_path(solution_map, initial_layout, final_layout):
+    def reconstruct_path(solution_map, final_layout):
         path = []
         layout = final_layout.copy()
 
@@ -228,8 +223,9 @@ class Load:
 
         path.reverse()
         
-        return path # TODO: keep track of moves made too
+        return path
 
+    @staticmethod
     def equal_states(layout1, layout2):
         for r in range(8):
             for c in range(12):
