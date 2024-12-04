@@ -57,6 +57,8 @@ class Load:
         frontier.put((initial_h, 0, initial_h, copy.deepcopy(ship_layout), full_unload_list, full_load_list))
         # key is layout (hashable). value is previous layout
         hashed_layout = tuple(tuple(row) for row in ship_layout)
+        explored[hashed_layout] = True
+        # explored.get(hashed_layout, True)
         solution_map[hashed_layout] = None
 
         # loops for each state in queue
@@ -74,10 +76,6 @@ class Load:
             empty_spots = [cord for cord in empty_spots if cord[0] != 8]
             top_containers = [(x - 1, y) for x, y in empty_spots if x > 0]
 
-            # TODO: add all possible moves to the frontier
-            # don't load already explored states into frontier (when frontier implemented)
-            # update load and unload list for each state
-            # TODO: keep track of previous states
             # Moves:
             # 1. Every container to load to empty_spots
             # 2. Every container in top_containers to empty_spots
@@ -218,34 +216,19 @@ class Load:
     # reconstruct path when solution is found
     @staticmethod
     def reconstruct_path(solution_map, initial_layout, final_layout):
-        # TODO: need initial state for comparsion
         path = []
         layout = final_layout.copy()
 
-        while True:
+        while layout is not None:
             path.append(layout)
             hashable_layout = tuple(tuple(row) for row in layout)
 
             previous_layout = solution_map[hashable_layout]
             layout = previous_layout
 
-            Load.print_layout(layout)
-            print("===================")
-            time.sleep(2)
-
-            if layout is None or Load.equal_states(layout, initial_layout):
-                path.append(layout)
-                break
-
         path.reverse()
         
-        print("PATH")
-        for item in path:
-            Load.print_layout(item)
-            print("=============")
-        
-        return path
-        # return current_layout
+        return path # TODO: keep track of moves made too
 
     def equal_states(layout1, layout2):
         for r in range(8):
@@ -257,7 +240,6 @@ class Load:
         return True
 
     # check if goal state is satisfied
-    # TODO: works fine now. but can be simpler after frontier is finished
     @staticmethod
     def check_goal_state(ship_layout, unload_list, load_list):
         return Load.check_unload_goal(ship_layout, unload_list) & Load.check_load_goal(ship_layout, load_list)
@@ -373,8 +355,11 @@ test_layout[1][2] = container5
 # unloading
 # test_layout2 = Load.run(test_layout, [(container1, (0, 0))], [])
 # Load.print_layout(test_layout2)
-test_layout2 = Load.run(test_layout, [(container1, (0, 0)), (container3, (0, 2))], [])
-Load.print_layout(test_layout2)
+test_output = Load.run(test_layout, [(container1, (0, 0)), (container3, (0, 2))], []) # TODO: moves not optimal here
+print("SOLUTION:")
+for item in test_output:
+    Load.print_layout(item)
+    print("=============")
 # test_layout2 = Load.run(test_layout, [(container5, (1, 2)), (container3, (0, 2))], [])
 # Load.print_layout(test_layout2)
 # loading
