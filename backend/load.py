@@ -64,6 +64,7 @@ class Load:
             # check goal state
             if(Load.check_goal_state(current_layout, unload_list, load_list)):
                 print(f"GOAL: {current_cost}, {current_h}")
+                print(f"{Load.calc_unload_h(current_layout, unload_list)}, {Load.calc_load_h(load_list)}")
                 return Load.reconstruct_path(solution_map, current_layout)
 
             # finds all empty spots in each column. 3rd line filters
@@ -93,7 +94,7 @@ class Load:
                     new_load_list = copy.deepcopy(load_list)
                     new_load_list[load_index] = (container, desired_cords, desired_cords)
 
-                    Load.push_new_state(frontier, explored, solution_map, new_layout, current_layout, unload_list, load_list, current_cost, (r,c), (8, 0), highest_empty_r=0)
+                    Load.push_new_state(frontier, explored, solution_map, new_layout, current_layout, unload_list, new_load_list, current_cost, (r,c), (8, 0), highest_empty_r=0)
 
             # every top_container containers to empty_spots or unload
             for container_cord in top_containers:
@@ -116,6 +117,17 @@ class Load:
                         unload_index = idx
                         break
 
+                # only unload containers on unload_list
+                if is_on_unload_list:
+                    new_layout = copy.deepcopy(current_layout)
+                    new_layout[r][c] = Container()
+
+                    unload_item = list(unload_list[unload_index])
+                    unload_item[2] = (8,0)
+                    unload_list[unload_index] = tuple(unload_item)
+                    
+                    Load.push_new_state(frontier, explored, solution_map, new_layout, current_layout, unload_list, load_list, current_cost, (8,0), (r, c), highest_empty_r=0)
+                
                 # move to every possible empty spot
                 for empty_cord in empty_spots:
                     # if top_container and empty_spot are same col. will lead to floating container
@@ -140,16 +152,6 @@ class Load:
 
                     Load.push_new_state(frontier, explored, solution_map, new_layout, current_layout, unload_list, load_list, current_cost, empty_cord, (r, c), highest_empty_r)
 
-                # only unload containers on unload_list
-                if is_on_unload_list:
-                    new_layout = copy.deepcopy(current_layout)
-                    new_layout[r][c] = Container()
-
-                    unload_item = list(unload_list[unload_index])
-                    unload_item[2] = (8,0)
-                    unload_list[unload_index] = tuple(unload_item)
-                    
-                    Load.push_new_state(frontier, explored, solution_map, new_layout, current_layout, unload_list, load_list, current_cost, (8,0), (r, c), highest_empty_r=0)
         print("solution not found")
             
     # find highest empty slot in each column
@@ -305,7 +307,6 @@ class Load:
         for _, location, current_location in load_list:
             r, c = location
             x, y = current_location
-            # sum += Load.load_unload_heuristic(r, c)
             sum += abs(r-x) + abs(c-y)
         return sum
 
@@ -336,7 +337,7 @@ container6 = Container("F", 300)
 # 8 x 12
 test_layout = [[Container() for i in range(0,12)] for j in range(0,8)]
 test_layout[0][0] = container1
-test_layout[1][0] = container2
+# test_layout[1][0] = container2
 test_layout[0][2] = container3
 # test_layout[1][2] = container5
 
@@ -350,7 +351,7 @@ test_layout[0][2] = container3
 # test_output = Load.run(test_layout, [], [(container4, (0, 0)), (container5, (0, 11))])
 # both
 # test_output = Load.run(test_layout, [(container1, (0, 0))], [(container4, (0, 10)), (container5, (0, 11))])
-test_output = Load.run(test_layout, [(container1, (0, 0)), (container3, (0, 2))], [(container6, (0, 11))]) # TODO: solution not optimal. h is more than 0
+test_output = Load.run(test_layout, [(container1, (0, 0)), (container3, (0, 2))], [(container6, (0, 11))])
 
 
 print("SOLUTION:")
