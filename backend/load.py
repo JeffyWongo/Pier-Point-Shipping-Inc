@@ -5,7 +5,6 @@ Purpose of class Load:
 
 import queue
 import copy
-import time
 
 # for testing
 class Container:
@@ -72,8 +71,8 @@ class Load:
             # finds all empty spots in each column. 3rd line filters
             # find all topmost containers in each column
             empty_spots = Load.find_top_empty_containers(current_layout)
-            empty_spots = [cord for cord in empty_spots if cord[0] != 8]
             top_containers = [(x - 1, y) for x, y in empty_spots if x > 0]
+            print(top_containers)
 
             # Moves:
             # 1. Every container to load to empty_spots
@@ -119,16 +118,17 @@ class Load:
                         is_on_unload_list = True
                         unload_index = idx
                         break
-
+                
+                
                 # move to every possible empty spot
                 for empty_cord in empty_spots:
                     # if top_container and empty_spot are same col. will lead to floating container
-                    if(empty_cord[1]==c):
+                    if(empty_cord[1]==c or empty_cord[0]==8):
                         continue
 
                     # find row of highest container between container to move and empty spot
                     highest_empty_r = r
-                    for col_index in range(min(c, empty_cord[1]), max(c, empty_cord[1]) + 1):
+                    for col_index in range(min(c, empty_cord[1]), max(c, empty_cord[1])):
                         if(col_index==c):
                             continue
                         highest_empty_r = max(empty_spots[col_index][0], highest_empty_r)
@@ -158,7 +158,8 @@ class Load:
                         # key is layout (hashable). value is previous layout
                         solution_map[hashable_layout] = current_layout
                         # add new state to frontier
-                        cost = abs(empty_cord[0] - r) + abs(empty_cord[1] - c)
+                        # cost = abs(empty_cord[0] - r) + abs(empty_cord[1] - c) # TODO: add higest_empty_r into calc
+                        cost = abs(empty_cord[1] - c) + abs(highest_empty_r - r) + abs(highest_empty_r - empty_cord[0])
                         h = Load.calc_heuristic(layout, unload_list, load_list)
                         stuff = (current_cost + cost + h, current_cost + cost, h, layout, unload_list, load_list)
                         frontier.put(stuff)
@@ -180,11 +181,14 @@ class Load:
         empty_spots = []
         transposed_layout = zip(*current_layout)
         for col, column in enumerate(transposed_layout): # iterate through columns
+            spot_found = False
             for row, item in enumerate(column):
                 if(item.name == "UNUSED"):
                     empty_spots.append((row, col))
+                    spot_found = True
                     break
-            empty_spots.append((8, col))
+            if not spot_found:
+                empty_spots.append((8, col))
         return empty_spots
 
     @staticmethod
@@ -342,21 +346,28 @@ container6 = Container("F", 300)
 
 # 8 x 12
 test_layout = [[Container() for i in range(0,12)] for j in range(0,8)]
-test_layout[0][0] = container1
-test_layout[1][0] = container2
-test_layout[0][2] = container3
-test_layout[1][2] = container4
+# test_layout[0][0] = container1
+# test_layout[1][0] = container2
+# test_layout[0][2] = container3
+# test_layout[1][2] = container4
 
 # Test case for running:
 # unloading
 # test_output = Load.run(test_layout, [(container1, (0, 0))], [])
-test_output = Load.run(test_layout, [(container1, (0, 0)), (container3, (0, 2))], [(container6, (0, 11))])
-# test_output = Load.run(test_layout, [(container5, (1, 2)), (container3, (0, 2))], [])
+# test_output = Load.run(test_layout, [(container1, (0, 0)), (container3, (0, 2))], [])
 # loading
 # test_output = Load.run(test_layout, [], [(container4, (0, 3))])
 # test_output = Load.run(test_layout, [], [(container4, (0, 0)), (container5, (0, 11))])
 # both
 # test_output = Load.run(test_layout, [(container1, (0, 0))], [(container4, (0, 10)), (container5, (0, 11))])
+# test_output = Load.run(test_layout, [(container1, (0, 0)), (container3, (0, 2))], [(container6, (0, 11))])
+
+test_layout[0][0] = container1
+test_layout[1][0] = container2
+for i in range(8):
+    test_layout[i][1] = container2
+
+test_output = Load.run(test_layout, [(container1, (0, 0))], [])
 
 print("SOLUTION:")
 for item in test_output:
