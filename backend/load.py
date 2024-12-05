@@ -82,7 +82,6 @@ class Load:
             # 3. Every container in top_containers to unloaded
 
             # every load_list containers to empty_spots
-            # TODO: load containers onboard to other possible empty spots
             for load_index, info in enumerate(load_list):
                 container, desired_cords, current_cords = info
                 if(current_cords == desired_cords):
@@ -104,7 +103,6 @@ class Load:
             for container_cord in top_containers:
                 r, c = container_cord
 
-                #TODO: what if move the loaded container around
                 is_on_load_list = False
                 for load_index, load_container in enumerate(load_list): # TODO: doesn't deal with duplicates
                     if(load_container[0].name == current_layout[r][c].name):
@@ -280,7 +278,7 @@ class Load:
 
         for _, _, curr_location in unload_list:
             r, c = curr_location
-            # TODO: revise this code later
+            # TODO: (optional) revise this code later
             # old_low = 8
 
             # if c not in lowest_per_col:
@@ -343,13 +341,15 @@ container3 = Container("C", 400)
 container4 = Container("D", 500)
 container5 = Container("E", 2200)
 container6 = Container("F", 300)
+nan_container = Container("NAN", -1)
 
 # 8 x 12
 test_layout = [[Container() for i in range(0,12)] for j in range(0,8)]
-# test_layout[0][0] = container1
-# test_layout[1][0] = container2
-# test_layout[0][2] = container3
-# test_layout[1][2] = container4
+test_layout[0][0] = container1
+test_layout[1][0] = container2
+test_layout[0][10] = container3
+test_layout[1][10] = container4
+test_layout[0][1] = nan_container
 
 # Test case for running:
 # unloading
@@ -360,14 +360,14 @@ test_layout = [[Container() for i in range(0,12)] for j in range(0,8)]
 # test_output = Load.run(test_layout, [], [(container4, (0, 0)), (container5, (0, 11))])
 # both
 # test_output = Load.run(test_layout, [(container1, (0, 0))], [(container4, (0, 10)), (container5, (0, 11))])
-# test_output = Load.run(test_layout, [(container1, (0, 0)), (container3, (0, 2))], [(container6, (0, 11))])
+test_output = Load.run(test_layout, [(container1, (0, 0)), (container3, (0, 10))], [(container6, (0, 11))])
 
-test_layout[0][0] = container1
-test_layout[1][0] = container2
-for i in range(8):
-    test_layout[i][1] = container2
+# test_layout[0][0] = container1
+# test_layout[1][0] = container2
+# for i in range(8):
+#     test_layout[i][1] = container2
 
-test_output = Load.run(test_layout, [(container1, (0, 0))], [])
+# test_output = Load.run(test_layout, [(container1, (0, 0))], [])
 
 print("SOLUTION:")
 for item in test_output:
