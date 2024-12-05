@@ -72,7 +72,9 @@ class Load:
             # find all topmost containers in each column
             empty_spots = Load.find_top_empty_containers(current_layout)
             top_containers = [(x - 1, y) for x, y in empty_spots if x > 0]
-            print(top_containers)
+            # print(top_containers)
+            # print(empty_spots)
+            # print("============")
 
             # Moves:
             # 1. Every container to load to empty_spots
@@ -147,8 +149,6 @@ class Load:
                         layout[empty_cord[0]][empty_cord[1]]
                     )
 
-                    hashable_layout = tuple(tuple(row) for row in layout)
-
                     # check if state is already explored
                     hashable_layout = tuple(tuple(row) for row in layout)
                     if explored.get(hashable_layout, False):
@@ -158,11 +158,12 @@ class Load:
                         # key is layout (hashable). value is previous layout
                         solution_map[hashable_layout] = current_layout
                         # add new state to frontier
-                        # cost = abs(empty_cord[0] - r) + abs(empty_cord[1] - c) # TODO: add higest_empty_r into calc
                         cost = abs(empty_cord[1] - c) + abs(highest_empty_r - r) + abs(highest_empty_r - empty_cord[0])
                         h = Load.calc_heuristic(layout, unload_list, load_list)
                         stuff = (current_cost + cost + h, current_cost + cost, h, layout, unload_list, load_list)
                         frontier.put(stuff)
+
+                        # print(f"({r},{c}) -> {empty_cord} and {highest_empty_r}")
 
                 if is_on_unload_list:
                     layout = copy.deepcopy(current_layout)
@@ -205,7 +206,6 @@ class Load:
         solution_map[hashable_layout] = current_layout
 
         # Calculate the cost and heuristic
-        # TODO: cost will vary
         cost = abs(8 - r) + c
         h = Load.calc_heuristic(new_layout, unload_list, load_list)
 
