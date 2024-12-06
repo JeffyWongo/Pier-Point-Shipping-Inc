@@ -12,7 +12,7 @@ int main() {
     Balance balance(ship);
 
     // test data
-    /*  //this is the bug case - not yet solved
+    /* //this is the bug case - not yet solved
     balance.modifyShip(7, 2, 10);
     balance.modifyShip(7, 7, 15);
     balance.modifyShip(7, 5, 20);
@@ -41,7 +41,7 @@ int main() {
     balance.modifyShip(5, 0, 40);
     */
 
-    
+    /*
     //test case3
     balance.modifyShip(7, 0, 10001);
     balance.modifyShip(7, 1, 500);
@@ -49,7 +49,7 @@ int main() {
     balance.modifyShip(7, 3, 100);
     balance.modifyShip(6, 0, 9041);
     balance.modifyShip(6, 1, 10);
-    
+    */
 
     /*
     //test case4
@@ -86,7 +86,7 @@ int main() {
     balance.modifyShip(7, 11, -1);
     */
 
-    /*
+    
     //test case SilverQueen
     balance.modifyShip(7, 0, -1);
     balance.modifyShip(7, 1, 60);
@@ -94,15 +94,16 @@ int main() {
     balance.modifyShip(7, 3, 20);
     balance.modifyShip(7, 11, -1);
     balance.modifyShip(6, 1, 20);
-    */
+    
 
 
     balance.printShip();
-
     while (!balance.isBalanced()) {
         balance.calculateSums();
+        balance.printShipWeight();
         balance.printBestMove();
         balance.printShip();
+        balance.printShipWeight();
     }
 
     cout << "Congrats! it's balanced now." << endl;

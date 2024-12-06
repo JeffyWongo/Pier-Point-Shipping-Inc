@@ -12,7 +12,7 @@ using namespace std;
 Balance::Balance(vector<vector<int>>& initialShip) : ship(initialShip) {}
 
 int Balance::calculateHeuristic(int row, int col, int targetRow, int targetCol) {
-    return abs(row - targetRow) + abs(col - targetCol);
+    return abs(row - targetRow) + abs(col - targetCol); // 曼哈頓距離
 }
 
 
@@ -21,17 +21,17 @@ vector<pair<int, int>> Balance::findShortestPath(int startRow, int startCol) {
     unordered_map<string, bool> visited;
     vector<pair<int, int>> directions = { {-1, 0}, {1, 0}, {0, -1}, {0, 1} };
 
+    // if target on the left then move to right, if on the right then move to left
     bool moveToRight = (startCol < cols / 2);
 
     int targetCol = moveToRight ? cols / 2 : cols / 2 - 1;
     int targetRow = -1;
 
     if (moveToRight) {
-
+        // if on the left then move to right
         while (targetCol >= cols / 2 && targetCol < cols) {
-            for (int r = rows - 1; r >= 0; --r) { // from the bottom row
+            for (int r = rows - 1; r >= 0; --r) { // start at the bottom
                 if (ship[r][targetCol] == 0) {
-                    // no floating container check
                     if (r == rows - 1 || ship[r + 1][targetCol] != 0) {
                         targetRow = r;
                         break;
@@ -43,27 +43,28 @@ vector<pair<int, int>> Balance::findShortestPath(int startRow, int startCol) {
         }
     }
     else {
+        // if on the right then move to left
         while (targetCol >= 0 && targetCol < cols / 2) {
-            for (int r = rows - 1; r >= 0; --r) { // from the bottom row
+            for (int r = rows - 1; r >= 0; --r) {
                 if (ship[r][targetCol] == 0) {
-                    // no floating container check
                     if (r == rows - 1 || ship[r + 1][targetCol] != 0) {
                         targetRow = r;
                         break;
                     }
                 }
             }
-            if (targetRow != -1) break; 
+            if (targetRow != -1) break;
             ++targetCol;
         }
     }
 
+    // if can't find target
     if (targetRow == -1) {
         cout << "can't find target。" << endl;
         return {};
     }
 
-
+    // initialize node
     Node startNode = { startRow, startCol, 0, calculateHeuristic(startRow, startCol, targetRow, targetCol), {} };
     openList.push(startNode);
 
@@ -71,6 +72,7 @@ vector<pair<int, int>> Balance::findShortestPath(int startRow, int startCol) {
         Node current = openList.top();
         openList.pop();
 
+        // return if on goal state
         if (current.row == targetRow && current.col == targetCol) {
             return current.path;
         }
@@ -82,10 +84,10 @@ vector<pair<int, int>> Balance::findShortestPath(int startRow, int startCol) {
         for (auto& dir : directions) {
             int newRow = current.row + dir.first;
             int newCol = current.col + dir.second;
+
             if (newRow < 0 || newRow >= rows || newCol < 0 || newCol >= cols) continue;
             if (visited[to_string(newRow) + "-" + to_string(newCol)]) continue;
-            if (ship[newRow][newCol] != 0) continue; 
-
+            if (ship[newRow][newCol] != 0) continue; // don't go through obstacle
 
             int newG = current.g + 1;
             int newH = calculateHeuristic(newRow, newCol, targetRow, targetCol);
@@ -101,6 +103,7 @@ vector<pair<int, int>> Balance::findShortestPath(int startRow, int startCol) {
 
 
 
+// calculate weights on two sides
 void Balance::calculateSums() {
     leftSum = 0;
     rightSum = 0;
@@ -120,7 +123,9 @@ void Balance::calculateSums() {
             }
         }
     }
+}
 
+void Balance::printShipWeight(){
     cout << "weights on left half: " << leftSum << endl;
     cout << "weights on right half: " << rightSum << endl;
     cout << "total weight: " << totalSum << endl;
@@ -137,23 +142,20 @@ int Balance::containerWeight(int row, int col) {
 }
 
 
+// check if ship is balance now
 bool Balance::isBalanced() {
     if (opitimalBalance == true) {
         return true;
     }
 
     calculateSums();
-
-
     int totalWeight = leftSum + rightSum;
-
 
     if (totalWeight == 0) {
         return true;
     }
 
     int tolerance = totalWeight * 0.1; // 10%
-
     return abs(leftSum - rightSum) <= tolerance;
 }
 
@@ -193,6 +195,41 @@ void Balance::printBestMove() {
     }
 }
 
+bool Balance::moveObstacle(int row, int col) {
+    int targetCol = -1;
+
+    cout << "adjusting the object position above the target [" << row << "][" << col << "] before moving the target" << endl;
+
+    if (col >= cols / 2) { // right half
+        if (col < cols - 1) {
+            targetCol = col + 1; // moving one col to the right
+        }
+        else {
+            targetCol = 6; // move to col6 if at col11
+        }
+    }
+    else { // left half
+        if (col > 0) {
+            targetCol = col - 1; // moving one col to the left
+        }
+        else {
+            targetCol = 5; // move to col5 if at col0
+        }
+    }
+
+    // put it at the bottom so no floating object
+    for (int targetRow = rows - 1; targetRow >= 0; --targetRow) {
+        if (ship[targetRow][targetCol] == 0) { // empty spot
+            ship[targetRow][targetCol] = ship[row][col];
+            ship[row][col] = 0;
+            return true;
+        }
+    }
+    return false;
+}
+
+
+
 //find which is the best target to move
 pair<int, int> Balance::findBestMove() {
     int middleNumber = totalSum / 2;
@@ -201,17 +238,25 @@ pair<int, int> Balance::findBestMove() {
     const int threshold = 1;
 
     if (leftSum > rightSum) {
-
         for (int i = 0; i < rows; ++i) {
             for (int j = 0; j < cols / 2; ++j) {
                 int weight = ship[i][j];
-
+                // skip NAN(-1)
                 if (weight != 0 && weight != -1) {
+                    // check no object above target
+                    for (int r = 0; r < i; ++r) {
+                        if (ship[r][j] > 0) {
+                            if (!moveObstacle(r, j)) {
+                                cerr << "Error: Unable to move obstacle at (" << r << ", " << j << ")." << endl;
+                                return { -1, -1 };
+                            }
+                        }
+                    }
+
                     vector<pair<int, int>> path = findShortestPath(i, j);
                     if (!path.empty()) {
                         int tempRightSum = rightSum + weight;
                         int diff = abs(tempRightSum - middleNumber);
-
                         if (diff < closestDiff) {
                             closestDiff = diff;
                             bestMove = { i, j };
@@ -228,7 +273,18 @@ pair<int, int> Balance::findBestMove() {
         for (int i = 0; i < rows; ++i) {
             for (int j = cols / 2; j < cols; ++j) {
                 int weight = ship[i][j];
+                // skip NAN(-1)
                 if (weight != 0 && weight != -1) {
+                    // check no object above target
+                    for (int r = 0; r < i; ++r) {
+                        if (ship[r][j] > 0) {
+                            if (!moveObstacle(r, j)) {
+                                cerr << "Error: Unable to move obstacle at (" << r << ", " << j << ").\n";
+                                return { -1, -1 };
+                            }
+                        }
+                    }
+
                     vector<pair<int, int>> path = findShortestPath(i, j);
                     if (!path.empty()) {
                         int tempLeftSum = leftSum + weight;
@@ -247,6 +303,7 @@ pair<int, int> Balance::findBestMove() {
     }
     return bestMove;
 }
+
 
 
 

@@ -21,6 +21,8 @@ private:
 
 public:
     Balance(vector<vector<int>>& initialShip); //constructor
+    bool moveObstacle(int row, int col);
+    void printShipWeight();
     void calculateSums();
     void modifyShip(int row, int col, int value);
     void printBestMove();
