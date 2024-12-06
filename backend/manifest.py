@@ -14,6 +14,7 @@
 
 import sys
 from ship import Ship
+from container import Container
 
 # INPUT, tested 
 def INPUT_manifest(input_file):
@@ -40,7 +41,14 @@ def INPUT_manifest(input_file):
             weight = int(parts[1].strip("{}"))
             name = parts[2]
 
-            ship.set_location(y, x, weight, name)
+            # CASE MANAGEMENT: for name, UNUSED, NAN
+            if name == "UNUSED":
+                ship.grid[y][x] = "Place" # placeholder, meaning can put stuffs
+            elif name == "NAN":
+                ship.grid[y][x] = "NAN" # permanetly unusale
+            else:
+                container = Container(weight = weight, name = name)
+                ship.place_container(y, x, container)
 
         except ValueError as val:
             print(f"Error processing line '{line.strip()}': {val}")
@@ -63,12 +71,20 @@ def OUTPUT_manifest(ship, input_manifest):
 
     try:
         with open(output_manifest, 'w') as file:
-            for x in range(12):
-                for y in range(8):
-                    location = ship.get_location(y, x)
-                    if location["name"] != "UNUSED":
-                        file.write(f"[{y + 1}, {x + 1}], {{{location['weight']}}}, {location['name']}\n")
-        print(f"Output written to '{output_manifest} successfully.'")
+            for y in range(len(ship.grid)):
+                for x in range(len(ship.grid[0])):
+                    cell = ship.grid[y][x]
+                    y_format = str(y + 1).zfill(2) # cuz we need 01, 02
+                    x_format = str(x + 1).zfill(2)
+
+                    if isinstance(cell, Container): # container with a name
+                        weight_format = str(cell.weight).zfill(5) # format #####
+                        file.write(f"[{y_format}, {x_format}], {{{weight_format}}}, {cell.name}\n")
+                    elif cell == "NAN": # NAN container
+                        file.write(f"[{y_format}, {x_format}], {{00000}}, NAN\n")
+                    elif cell == "Place": # UNUSED container
+                        file.write(f"[{y_format}, {x_format}], {{00000}}, UNUSED\n")
+        print(f"Output written to '{output_manifest}' successfully.")
     except Exception as esc:
         print(f"Error writting output file: {esc}")
         sys.exit(1)
