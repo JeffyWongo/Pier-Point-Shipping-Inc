@@ -71,10 +71,7 @@ class Load:
             # finds all empty spots in each column. 3rd line filters
             # find all topmost containers in each column
             empty_spots = Load.find_top_empty_containers(current_layout)
-            top_containers = [(x - 1, y) for x, y in empty_spots if x > 0]
-            # print(top_containers)
-            # print(empty_spots)
-            # print("============")
+            top_containers = [(x - 1, y) for x, y in empty_spots if x > 0 and current_layout[x-1][y].name!="NAN"]
 
             # Moves:
             # 1. Every container to load to empty_spots
@@ -350,9 +347,9 @@ nan_container = Container("NAN", -1)
 
 # 8 x 12
 test_layout = [[Container() for i in range(0,12)] for j in range(0,8)]
-test_layout[0][0] = container1
+# test_layout[0][0] = container1
 # test_layout[1][0] = container2
-test_layout[0][2] = container3
+# test_layout[0][2] = container3
 # test_layout[1][10] = container4
 # test_layout[0][1] = nan_container
 
@@ -365,15 +362,15 @@ test_layout[0][2] = container3
 # test_output = Load.run(test_layout, [], [(container4, (0, 0)), (container5, (0, 11))])
 # both
 # test_output = Load.run(test_layout, [(container1, (0, 0))], [(container4, (0, 10)), (container5, (0, 11))])
-test_output = Load.run(test_layout, [(container1, (0, 0))], [(container6, (0, 11))])
+# test_output = Load.run(test_layout, [(container1, (0, 0))], [(container6, (0, 11))])
 # test_output = Load.run(test_layout, [(container1, (0, 0)), (container3, (0, 2))], [(container6, (0, 11))])
 
-# test_layout[0][0] = container1
-# test_layout[1][0] = container2
-# for i in range(8):
-#     test_layout[i][1] = container2
+# NAN test case
+for i in range(0, 12):
+    test_layout[0][i] = nan_container
 
-# test_output = Load.run(test_layout, [(container1, (0, 0))], [])
+test_output = Load.run(test_layout, [(nan_container, (0, 0))], [])
+
 
 print("SOLUTION:")
 for item in test_output:
