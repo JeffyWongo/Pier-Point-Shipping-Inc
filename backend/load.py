@@ -57,7 +57,7 @@ class Load:
         # key is layout (hashable). value is previous layout
         hashed_layout = tuple(tuple(row) for row in ship_layout)
         explored[hashed_layout] = True
-        solution_map[hashed_layout] = None
+        solution_map[hashed_layout] = (ship_layout, None, None)
 
         # loops for each state in queue
         while not frontier.empty():
@@ -218,15 +218,15 @@ class Load:
         hashable_layout = tuple(tuple(row) for row in final_layout)
         layout_info = solution_map[hashable_layout]
 
-        while True:
+        path.append((final_layout, None, None))
+
+        while layout_info[1] is not None:
             path.append(layout_info)
             hashable_layout = tuple(tuple(row) for row in layout_info[0])
 
             previous_layout_info = solution_map[hashable_layout]
             layout_info = previous_layout_info
 
-            if layout_info is None:
-                break
 
         path.reverse()
         
@@ -377,8 +377,8 @@ test_output = Load.run(test_layout, [(container1, (0, 0))], [(container6, (0, 11
 
 print("SOLUTION:")
 for item in test_output:
-    print(f"{item[1]} -> {item[2]}")
     Load.print_layout(item[0])
+    print(f"{item[1]} -> {item[2]}")
     print("=============")
 
 
