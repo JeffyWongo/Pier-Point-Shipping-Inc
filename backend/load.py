@@ -241,7 +241,7 @@ class Load:
     # check if goal state is satisfied
     @staticmethod
     def check_goal_state(ship_layout, unload_list, load_list):
-        return Load.check_unload_goal(ship_layout, unload_list) & Load.check_load_goal(ship_layout, load_list)
+        return Load.check_unload_goal(ship_layout, unload_list) and Load.check_load_goal(ship_layout, load_list)
     
     # check if containers to unload are off the ship (and buffer)
     @staticmethod
@@ -411,16 +411,25 @@ test_layout = [[Container() for i in range(0,12)] for j in range(0,8)]
 # test_output = Load.run(test_layout, [(container6, (6, 4))], [(container8, (2, 0))])
 
 # test case 5
+# test_layout[0][0] = nan_container
+# test_layout[0][11] = nan_container
+# test_layout[0][1] = container1
+# test_layout[0][2] = container2
+# test_layout[0][3] = container3
+# test_layout[0][4] = container4
+# test_layout[0][5] = container5
+
+# test_output = Load.run(test_layout, [(container3, (0, 3)), (container4, (0, 4))], [(container6, (1, 1)), (container5, (1, 5))])
+
+# test case 6
 test_layout[0][0] = nan_container
 test_layout[0][11] = nan_container
 test_layout[0][1] = container1
 test_layout[0][2] = container2
 test_layout[0][3] = container3
-test_layout[0][4] = container4
-test_layout[0][5] = container5
+# test_layout[1][1] = container4
 
-test_output = Load.run(test_layout, [(container3, (0, 3)), (container4, (0, 4))], [(container6, (1, 1)), (container5, (1, 5))])
-
+test_output = Load.run(test_layout, [(container1, (0, 1)), (container3, (0, 3))], [(container6, (0, 10))])
 
 if test_output is not None:
     print("SOLUTION:")
