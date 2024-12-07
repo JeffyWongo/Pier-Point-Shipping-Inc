@@ -102,7 +102,7 @@ class Load:
 
                 is_on_load_list = False
                 for load_index, load_container in enumerate(load_list): # TODO: doesn't deal with duplicates
-                    if(load_container[0].name == current_layout[r][c].name):
+                    if(load_container[2] == container_cord):
                         is_on_load_list = True
                         break
                 if(is_on_load_list):
@@ -111,12 +111,11 @@ class Load:
                 is_on_unload_list = False
                 unload_index = -1
                 for idx, unload_container in enumerate(unload_list): # TODO: doesn't deal with duplicates
-                    if(unload_container[0].name == current_layout[r][c].name):
+                    if(unload_container[2] == container_cord):
                         is_on_unload_list = True
                         unload_index = idx
                         break
-                
-                
+
                 # move to every possible empty spot
                 for empty_cord in empty_spots:
                     # if top_container and empty_spot are same col. will lead to floating container
@@ -145,21 +144,21 @@ class Load:
                     )
 
                     # check if state is already explored
-                    hashable_layout = tuple(tuple(row) for row in layout)
-                    if explored.get(hashable_layout, False):
-                        continue
-                    else:
-                        explored[hashable_layout] = True
-                        # key is layout (hashable). value is previous layout
-                        solution_map[hashable_layout] = (current_layout, container_cord, empty_cord)
-                        # add new state to frontier
-                        cost = abs(empty_cord[1] - c) + abs(highest_empty_r - r) + abs(highest_empty_r - empty_cord[0])
-                        h = Load.calc_heuristic(layout, unload_list, load_list)
-                        stuff = (current_cost + cost + h, current_cost + cost, h, layout, unload_list, load_list)
-                        frontier.put(stuff)
+                    # hashable_layout = tuple(tuple(row) for row in layout)
+                    # if explored.get(hashable_layout, False):
+                    #     continue
+                    # else:
+                    #     explored[hashable_layout] = True
+                    #     # key is layout (hashable). value is previous layout
+                    #     solution_map[hashable_layout] = (current_layout, container_cord, empty_cord)
+                    #     # add new state to frontier
+                    #     cost = abs(empty_cord[1] - c) + abs(highest_empty_r - r) + abs(highest_empty_r - empty_cord[0])
+                    #     h = Load.calc_heuristic(layout, unload_list, load_list)
+                    #     stuff = (current_cost + cost + h, current_cost + cost, h, layout, unload_list, load_list)
+                    #     frontier.put(stuff)
+                    Load.push_new_state(frontier, explored, solution_map, layout, current_layout, unload_list, load_list, current_cost, container_cord, empty_cord)
 
-                        # print(f"({r},{c}) -> {empty_cord} and {highest_empty_r}")
-
+                    
                 if is_on_unload_list:
                     layout = copy.deepcopy(current_layout)
                     layout[r][c] = Container()
@@ -250,9 +249,15 @@ class Load:
         ship_containers = [container.name for row in ship_layout for container in row]
 
         # check if every container in unload_list is in ship_containers
-        for container, _, _ in unload_list:
+        for container, _, _  in unload_list:
             if container.name in ship_containers:
                 return False
+        # for container, initial_location, current_location in unload_list:
+        #     r,c = initial_location
+        #     if ship_layout[r][c].name != container.name:
+        #         return False
+        #     if current_location != (8,0):
+        #         return False
 
         return True
     
@@ -280,25 +285,6 @@ class Load:
 
         for _, _, curr_location in unload_list:
             r, c = curr_location
-            # TODO: (optional) revise this code later
-            # old_low = 8
-
-            # if c not in lowest_per_col:
-            #     lowest_per_col[c] = r
-            # elif r < lowest_per_col[c]:
-            #     old_low = lowest_per_col[c]
-            #     lowest_per_col[c] = r
-            # else:
-            #     old_low = lowest_per_col[c]
-            #     sum -= 1
-
-            # # Check if there are containers on top (add to h)
-            # for row in range(r + 1, 8):  # Iterate above the current position
-            #     if ship_layout[row][c].name != "UNUSED" and row < old_low:  # Check if empty
-            #         sum += 1
-            #     else:
-            #         break
-            # distance to (8,0)
             sum += Load.load_unload_heuristic(r, c)
         return sum
 
@@ -343,14 +329,16 @@ container3 = Container("C", 400)
 container4 = Container("D", 500)
 container5 = Container("E", 2200)
 container6 = Container("F", 300)
+container7 = Container("G", 212)
+container8 = Container("H", 1212)
 nan_container = Container("NAN", -1)
 
 # 8 x 12
 test_layout = [[Container() for i in range(0,12)] for j in range(0,8)]
 # test_layout[0][0] = container1
-# test_layout[1][0] = container2
+# test_layout[1][0] = container1
 # test_layout[0][2] = container3
-# test_layout[1][10] = container4
+# test_layout[0][10] = container4
 # test_layout[0][1] = nan_container
 
 # Test case for running:
@@ -366,10 +354,72 @@ test_layout = [[Container() for i in range(0,12)] for j in range(0,8)]
 # test_output = Load.run(test_layout, [(container1, (0, 0)), (container3, (0, 2))], [(container6, (0, 11))])
 
 # NAN test case
-for i in range(0, 12):
-    test_layout[0][i] = nan_container
+# for i in range(0, 12):
+#     test_layout[0][i] = nan_container
 
-test_output = Load.run(test_layout, [(nan_container, (0, 0))], [])
+# test_output = Load.run(test_layout, [(nan_container, (0, 0))], [])
+
+
+# Given test cases
+# test case 1
+# test_layout[0][0] = nan_container
+# test_layout[0][11] = nan_container
+# test_layout[0][1] = container1
+# test_layout[0][2] = container2
+
+# test_output = Load.run(test_layout, [(container1, (0,1))], [])
+
+# test case 2
+# test_layout[0][0] = nan_container
+# test_layout[0][1] = nan_container
+# test_layout[0][2] = nan_container
+# test_layout[0][9] = nan_container
+# test_layout[0][10] = nan_container
+# test_layout[0][11] = nan_container
+# test_layout[1][0] = nan_container
+# test_layout[1][11] = nan_container
+# test_layout[2][0] = container1
+# test_layout[1][1] = container2
+# test_layout[0][3] = container3
+# test_layout[0][8] = container4
+
+# test_output = Load.run(test_layout, [], [(container5, (0, 6))])
+
+# test case 3
+# test_layout[0][0] = container1
+# test_layout[0][1] = container2
+# test_layout[0][2] = container3
+# test_layout[0][3] = container4
+# test_layout[1][0] = container5
+# test_layout[1][1] = container6
+
+# test_output = Load.run(test_layout, [(container2, (0, 1))], [(container4, (0, 10)), (container7, (2,0))])
+
+# test case 4
+# for i in range(0, 12):
+#     test_layout[0][i] = nan_container
+# test_layout[1][0] = nan_container
+# test_layout[1][11] = nan_container
+# test_layout[1][4] = container1
+# test_layout[2][4] = container2
+# test_layout[3][4] = container3
+# test_layout[4][4] = container4
+# test_layout[5][4] = container5
+# test_layout[6][4] = container6
+# test_layout[7][4] = container7
+
+# test_output = Load.run(test_layout, [(container6, (6, 4))], [(container8, (2, 0))])
+
+# test case 5
+test_layout[0][0] = nan_container
+test_layout[0][11] = nan_container
+test_layout[0][1] = container1
+test_layout[0][2] = container2
+test_layout[0][3] = container3
+test_layout[0][4] = container4
+test_layout[0][5] = container5
+
+test_output = Load.run(test_layout, [(container3, (0, 3)), (container4, (0, 4))], [(container6, (1, 1)), (container5, (1, 5))])
 
 
 if test_output is not None:
