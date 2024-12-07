@@ -97,7 +97,7 @@ class Load:
                     new_load_list = copy.deepcopy(load_list)
                     new_load_list[load_index] = (container, desired_cords, desired_cords)
 
-                    Load.push_new_state(frontier, explored, solution_map, layout, current_layout, unload_list, new_load_list, current_cost, r, c)
+                    Load.push_new_state(frontier, explored, solution_map, layout, current_layout, unload_list, new_load_list, current_cost, (8, 0), desired_cords)
 
             # every top_container containers to empty_spots or unload
             for container_cord in top_containers:
@@ -154,7 +154,7 @@ class Load:
                     else:
                         explored[hashable_layout] = True
                         # key is layout (hashable). value is previous layout
-                        solution_map[hashable_layout] = current_layout
+                        solution_map[hashable_layout] = (current_layout, container_cord, empty_cord)
                         # add new state to frontier
                         cost = abs(empty_cord[1] - c) + abs(highest_empty_r - r) + abs(highest_empty_r - empty_cord[0])
                         h = Load.calc_heuristic(layout, unload_list, load_list)
@@ -171,7 +171,7 @@ class Load:
                     unload_item[2] = (8,0)
                     unload_list[unload_index] = tuple(unload_item)
                     
-                    Load.push_new_state(frontier, explored, solution_map, layout, current_layout, unload_list, load_list, current_cost, r, c)
+                    Load.push_new_state(frontier, explored, solution_map, layout, current_layout, unload_list, load_list, current_cost, container_cord, (8, 0))
         print("solution not found")
             
     # find highest empty slot in each column
@@ -191,7 +191,7 @@ class Load:
         return empty_spots
 
     @staticmethod
-    def push_new_state(frontier, explored, solution_map, new_layout, current_layout, unload_list, load_list, current_cost, r, c):
+    def push_new_state(frontier, explored, solution_map, new_layout, current_layout, unload_list, load_list, current_cost, container_cord, empty_cord):
         # make layout hashable
         hashable_layout = tuple(tuple(row) for row in new_layout)
 
@@ -201,10 +201,11 @@ class Load:
         explored[hashable_layout] = True
 
         # Record the current layout as the parent of the new layout in solution_map
-        solution_map[hashable_layout] = current_layout
+        solution_map[hashable_layout] = (current_layout, container_cord, empty_cord)
 
         # Calculate the cost and heuristic
-        cost = abs(8 - r) + c
+        # cost = abs(8 - r) + c
+        cost = abs(container_cord[0] - empty_cord[0]) + abs(container_cord[1] - empty_cord[1])
         h = Load.calc_heuristic(new_layout, unload_list, load_list)
 
         # Add the new state to the frontier
@@ -214,14 +215,18 @@ class Load:
     @staticmethod
     def reconstruct_path(solution_map, final_layout):
         path = []
-        layout = final_layout.copy()
+        hashable_layout = tuple(tuple(row) for row in final_layout)
+        layout_info = solution_map[hashable_layout]
 
-        while layout is not None:
-            path.append(layout)
-            hashable_layout = tuple(tuple(row) for row in layout)
+        while True:
+            path.append(layout_info)
+            hashable_layout = tuple(tuple(row) for row in layout_info[0])
 
-            previous_layout = solution_map[hashable_layout]
-            layout = previous_layout
+            previous_layout_info = solution_map[hashable_layout]
+            layout_info = previous_layout_info
+
+            if layout_info is None:
+                break
 
         path.reverse()
         
@@ -346,10 +351,10 @@ nan_container = Container("NAN", -1)
 # 8 x 12
 test_layout = [[Container() for i in range(0,12)] for j in range(0,8)]
 test_layout[0][0] = container1
-test_layout[1][0] = container2
-test_layout[0][10] = container3
-test_layout[1][10] = container4
-test_layout[0][1] = nan_container
+# test_layout[1][0] = container2
+test_layout[0][2] = container3
+# test_layout[1][10] = container4
+# test_layout[0][1] = nan_container
 
 # Test case for running:
 # unloading
@@ -360,7 +365,8 @@ test_layout[0][1] = nan_container
 # test_output = Load.run(test_layout, [], [(container4, (0, 0)), (container5, (0, 11))])
 # both
 # test_output = Load.run(test_layout, [(container1, (0, 0))], [(container4, (0, 10)), (container5, (0, 11))])
-test_output = Load.run(test_layout, [(container1, (0, 0)), (container3, (0, 10))], [(container6, (0, 11))])
+test_output = Load.run(test_layout, [(container1, (0, 0))], [(container6, (0, 11))])
+# test_output = Load.run(test_layout, [(container1, (0, 0)), (container3, (0, 2))], [(container6, (0, 11))])
 
 # test_layout[0][0] = container1
 # test_layout[1][0] = container2
@@ -371,7 +377,8 @@ test_output = Load.run(test_layout, [(container1, (0, 0)), (container3, (0, 10))
 
 print("SOLUTION:")
 for item in test_output:
-    Load.print_layout(item)
+    print(f"{item[1]} -> {item[2]}")
+    Load.print_layout(item[0])
     print("=============")
 
 
