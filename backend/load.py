@@ -169,7 +169,7 @@ class Load:
                     unload_list[unload_index] = tuple(unload_item)
                     
                     Load.push_new_state(frontier, explored, solution_map, layout, current_layout, unload_list, load_list, current_cost, container_cord, (8, 0))
-        print("solution not found")
+        return None
             
     # find highest empty slot in each column
     @staticmethod
@@ -372,11 +372,15 @@ for i in range(0, 12):
 test_output = Load.run(test_layout, [(nan_container, (0, 0))], [])
 
 
-print("SOLUTION:")
-for item in test_output:
-    Load.print_layout(item[0])
-    print(f"{item[1]} -> {item[2]}")
-    print("=============")
+if test_output is not None:
+    print("SOLUTION:")
+    for item in test_output:
+        Load.print_layout(item[0])
+        print(f"{item[1]} -> {item[2]}")
+        print("=============")
+else:
+    print("No SOLUTION")
+    Load.print_layout(test_layout)
 
 
 # Test case for heuristic: (may still be glitchy with multiple containers in the same column)
