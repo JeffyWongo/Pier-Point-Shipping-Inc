@@ -182,12 +182,24 @@ class Load:
         solution_map[hashable_layout] = (current_layout, container_cord, empty_cord)
 
         # Calculate the cost and heuristic
-        # cost = abs(8 - r) + c
-        cost = abs(container_cord[0] - empty_cord[0]) + abs(container_cord[1] - empty_cord[1])
+        highest_empty_r = Load.find_highest_between(current_layout, container_cord, empty_cord)
+        # cost = abs(container_cord[0] - empty_cord[0]) + abs(container_cord[1] - empty_cord[1])
+        cost = abs(container_cord[1] - empty_cord[1]) + abs(highest_empty_r - container_cord[0]) + abs(highest_empty_r - empty_cord[0])
         h = Load.calc_heuristic(unload_list, load_list)
 
         # Add the new state to the frontier
         frontier.put((current_cost + cost + h, current_cost + cost, h, new_layout, unload_list, load_list))
+
+    def find_highest_between(current_layout, container_cord, empty_cord):
+        empty_spots = Load.find_top_empty_containers(current_layout)
+        highest_empty_r = max(container_cord[0], empty_cord[0])
+        
+        for col_index in range(min(container_cord[1], empty_cord[1]), max(container_cord[1], empty_cord[1])):
+            candidate_r = empty_spots[col_index][0]
+            if(col_index==container_cord[1] or col_index==empty_cord[1]):
+                candidate_r -= 1
+            highest_empty_r = max(highest_empty_r, candidate_r)
+        return highest_empty_r
 
     # reconstruct path when solution is found
     @staticmethod
@@ -272,7 +284,6 @@ class Load:
         for _, location, current_location in load_list:
             r, c = location
             x, y = current_location
-            # sum += Load.load_unload_heuristic(r, c)
             sum += abs(r-x) + abs(c-y)
         return sum
 
@@ -305,24 +316,24 @@ nan_container = Container("NAN", -1)
 
 # 8 x 12
 test_layout = [[Container() for i in range(0,12)] for j in range(0,8)]
-# test_layout[0][0] = container1
-# test_layout[1][0] = container1
-# test_layout[0][2] = container1
-# test_layout[1][2] = container2
-# test_layout[0][10] = container4
+test_layout[0][0] = container1
+test_layout[1][0] = container1
+test_layout[0][2] = container1
+test_layout[1][2] = container2
+test_layout[0][10] = container4
 # test_layout[0][1] = nan_container
 
 # extreme case
-for i in range(8):
-    test_layout[i][1] = container2
-test_layout[0][0] = container1
-test_layout[1][0] = container3
+# for i in range(8):
+#     test_layout[i][1] = container2
+# test_layout[0][0] = container1
+# test_layout[1][0] = container3
 
-test_output = Load.run(test_layout, [(container1, (0,0))], [])
+# test_output = Load.run(test_layout, [(container1, (0,0))], [])
 
 # Test case for running:
 # unloading
-# test_output = Load.run(test_layout, [(container1, (0, 0)), (container1, (0, 2))], [(container4, (1, 9))])
+# test_output = Load.run(test_layout, [(container1, (0, 0))], [])
 # test_output = Load.run(test_layout, [(container1, (0, 0)), (container3, (0, 2))], [])
 # loading
 # test_output = Load.run(test_layout, [], [(container4, (0, 3))])
@@ -331,6 +342,7 @@ test_output = Load.run(test_layout, [(container1, (0,0))], [])
 # test_output = Load.run(test_layout, [(container1, (0, 0))], [(container4, (0, 10)), (container5, (0, 11))])
 # test_output = Load.run(test_layout, [(container1, (0, 0))], [(container6, (0, 11))])
 # test_output = Load.run(test_layout, [(container1, (0, 0)), (container3, (0, 2))], [(container6, (0, 11))])
+test_output = Load.run(test_layout, [(container1, (0, 0)), (container1, (0, 2))], [(container4, (1, 9))])
 
 # NAN test case
 # for i in range(0, 12):
