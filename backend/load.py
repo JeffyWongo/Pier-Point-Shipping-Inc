@@ -5,7 +5,6 @@ Purpose of class Load:
 
 import queue
 import copy
-import time
 
 # for testing
 class Container:
@@ -53,7 +52,7 @@ class Load:
         
         # pair stores (f, g, h, state)
         # f = g (cost) + h (heuristic)
-        initial_h = Load.calc_heuristic(ship_layout, full_unload_list, full_load_list)
+        initial_h = Load.calc_heuristic(full_unload_list, full_load_list)
         frontier.put((initial_h, 0, initial_h, copy.deepcopy(ship_layout), full_unload_list, full_load_list))
         # key is layout (hashable). value is previous layout
         hashed_layout = tuple(tuple(row) for row in ship_layout)
@@ -65,7 +64,7 @@ class Load:
             _, current_cost, current_h, current_layout, unload_list, load_list = frontier.get()
 
             # check goal state
-            if(Load.check_goal_state(current_layout, unload_list, load_list)):
+            if(Load.check_goal_state(unload_list, load_list)):
                 print(f"GOAL: {current_cost}, {current_h}")
                 return Load.reconstruct_path(solution_map, current_layout)
 
@@ -73,10 +72,6 @@ class Load:
             # find all topmost containers in each column
             empty_spots = Load.find_top_empty_containers(current_layout)
             top_containers = [(x - 1, y) for x, y in empty_spots if x > 0 and current_layout[x-1][y].name!="NAN"]
-            # print(empty_spots)
-            # print(top_containers)
-            # print("")
-            # time.sleep(1)
 
             # Moves:
             # 1. Every container to load to empty_spots
@@ -189,7 +184,7 @@ class Load:
         # Calculate the cost and heuristic
         # cost = abs(8 - r) + c
         cost = abs(container_cord[0] - empty_cord[0]) + abs(container_cord[1] - empty_cord[1])
-        h = Load.calc_heuristic(new_layout, unload_list, load_list)
+        h = Load.calc_heuristic(unload_list, load_list)
 
         # Add the new state to the frontier
         frontier.put((current_cost + cost + h, current_cost + cost, h, new_layout, unload_list, load_list))
@@ -227,47 +222,36 @@ class Load:
 
     # check if goal state is satisfied
     @staticmethod
-    def check_goal_state(ship_layout, unload_list, load_list):
-        return Load.check_unload_goal(ship_layout, unload_list) and Load.check_load_goal(ship_layout, load_list)
+    def check_goal_state(unload_list, load_list):
+        return Load.check_unload_goal(unload_list) and Load.check_load_goal(load_list)
     
     # check if containers to unload are off the ship (and buffer)
     @staticmethod
-    def check_unload_goal(ship_layout, unload_list):
-        ship_containers = [container.name for row in ship_layout for container in row]
-
-        # check if every container in unload_list is in ship_containers
-        for container, _, _  in unload_list:
-            if container.name in ship_containers:
+    def check_unload_goal(unload_list):
+        for _, _, current_location in unload_list:
+            if current_location != (8,0):
                 return False
-        # for container, initial_location, current_location in unload_list:
-        #     r,c = initial_location
-        #     if ship_layout[r][c].name != container.name:
-        #         return False
-        #     if current_location != (8,0):
-        #         return False
         return True
     
     # check if containers to load are on the ship
-    def check_load_goal(ship_layout, load_list):
+    def check_load_goal(load_list):
         # check if every container in load_list is in ship_containers
-        for container, location, _ in load_list:
-            x, y = location
-            if ship_layout[x][y].name != container.name:
+        for _, initial_location, current_location in load_list:
+            if initial_location != current_location:
                 return False
 
         return True
 
     # calculate the total heuristic
     @staticmethod
-    def calc_heuristic(ship_layout, unload_list, load_list):
-        return Load.calc_unload_h(ship_layout, unload_list) + Load.calc_load_h(load_list)
+    def calc_heuristic(unload_list, load_list):
+        return Load.calc_unload_h(unload_list) + Load.calc_load_h(load_list)
 
 
     # part of heuristic for unloading
     @staticmethod
-    def calc_unload_h(ship_layout, unload_list):
+    def calc_unload_h(unload_list):
         sum = 0
-        lowest_per_col = {}
 
         for _, _, curr_location in unload_list:
             r, c = curr_location
@@ -323,13 +307,22 @@ nan_container = Container("NAN", -1)
 test_layout = [[Container() for i in range(0,12)] for j in range(0,8)]
 # test_layout[0][0] = container1
 # test_layout[1][0] = container1
-# test_layout[0][2] = container3
+# test_layout[0][2] = container1
+# test_layout[1][2] = container2
 # test_layout[0][10] = container4
 # test_layout[0][1] = nan_container
 
+# extreme case
+for i in range(8):
+    test_layout[i][1] = container2
+test_layout[0][0] = container1
+test_layout[1][0] = container3
+
+test_output = Load.run(test_layout, [(container1, (0,0))], [])
+
 # Test case for running:
 # unloading
-# test_output = Load.run(test_layout, [(container1, (0, 0))], [])
+# test_output = Load.run(test_layout, [(container1, (0, 0)), (container1, (0, 2))], [(container4, (1, 9))])
 # test_output = Load.run(test_layout, [(container1, (0, 0)), (container3, (0, 2))], [])
 # loading
 # test_output = Load.run(test_layout, [], [(container4, (0, 3))])
@@ -408,14 +401,14 @@ test_layout = [[Container() for i in range(0,12)] for j in range(0,8)]
 # test_output = Load.run(test_layout, [(container3, (0, 3)), (container4, (0, 4))], [(container6, (1, 1)), (container5, (1, 5))])
 
 # test case 6
-test_layout[0][0] = nan_container
-test_layout[0][11] = nan_container
-test_layout[0][1] = container1
-test_layout[0][2] = container2
-test_layout[0][3] = container3
-test_layout[1][1] = container4
+# test_layout[0][0] = nan_container
+# test_layout[0][11] = nan_container
+# test_layout[0][1] = container1
+# test_layout[0][2] = container2
+# test_layout[0][3] = container3
+# test_layout[1][1] = container4
 
-test_output = Load.run(test_layout, [(container1, (0, 1)), (container3, (0, 3))], [(container6, (1, 0))])
+# test_output = Load.run(test_layout, [(container1, (0, 1)), (container3, (0, 3))], [(container6, (1, 0))])
 
 if test_output is not None:
     print("SOLUTION:")
