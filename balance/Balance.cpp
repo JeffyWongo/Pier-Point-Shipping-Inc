@@ -12,7 +12,7 @@ using namespace std;
 Balance::Balance(vector<vector<int>>& initialShip) : ship(initialShip) {}
 
 int Balance::calculateHeuristic(int row, int col, int targetRow, int targetCol) {
-    return abs(row - targetRow) + abs(col - targetCol); // 曼哈頓距離
+    return abs(row - targetRow) + abs(col - targetCol);
 }
 
 
@@ -21,16 +21,23 @@ vector<pair<int, int>> Balance::findShortestPath(int startRow, int startCol) {
     unordered_map<string, bool> visited;
     vector<pair<int, int>> directions = { {-1, 0}, {1, 0}, {0, -1}, {0, 1} };
 
-    // if target on the left then move to right, if on the right then move to left
-    bool moveToRight = (startCol < cols / 2);
+    // check if there's obstacle above
+    for (int r = 0; r < startRow; ++r) {
+        if (ship[r][startCol] > 0) { // if there's one
+            if (!moveObstacle(r, startCol)) {
+                cerr << "Error: Unable to move obstacle at (" << r << ", " << startCol << ").\n";
+                return {};
+            }
+        }
+    }
 
+    bool moveToRight = (startCol < cols / 2);
     int targetCol = moveToRight ? cols / 2 : cols / 2 - 1;
     int targetRow = -1;
 
     if (moveToRight) {
-        // if on the left then move to right
         while (targetCol >= cols / 2 && targetCol < cols) {
-            for (int r = rows - 1; r >= 0; --r) { // start at the bottom
+            for (int r = rows - 1; r >= 0; --r) {
                 if (ship[r][targetCol] == 0) {
                     if (r == rows - 1 || ship[r + 1][targetCol] != 0) {
                         targetRow = r;
@@ -43,7 +50,6 @@ vector<pair<int, int>> Balance::findShortestPath(int startRow, int startCol) {
         }
     }
     else {
-        // if on the right then move to left
         while (targetCol >= 0 && targetCol < cols / 2) {
             for (int r = rows - 1; r >= 0; --r) {
                 if (ship[r][targetCol] == 0) {
@@ -58,9 +64,8 @@ vector<pair<int, int>> Balance::findShortestPath(int startRow, int startCol) {
         }
     }
 
-    // if can't find target
     if (targetRow == -1) {
-        cout << "can't find target。" << endl;
+        cerr << "Error: Unable to find target position.\n";
         return {};
     }
 
@@ -72,7 +77,6 @@ vector<pair<int, int>> Balance::findShortestPath(int startRow, int startCol) {
         Node current = openList.top();
         openList.pop();
 
-        // return if on goal state
         if (current.row == targetRow && current.col == targetCol) {
             return current.path;
         }
@@ -100,6 +104,7 @@ vector<pair<int, int>> Balance::findShortestPath(int startRow, int startCol) {
 
     return {};
 }
+
 
 
 
@@ -195,10 +200,11 @@ void Balance::printBestMove() {
     }
 }
 
+//adjusting obstacle position so we can move target
 bool Balance::moveObstacle(int row, int col) {
     int targetCol = -1;
 
-    cout << "adjusting the object position above the target [" << row << "][" << col << "] before moving the target" << endl;
+    cout << "adjusting the object position [" << row << "][" << col << "] = " << containerWeight(row, col) << " above the target before moving the target" << endl;
 
     if (col >= cols / 2) { // right half
         if (col < cols - 1) {
@@ -222,6 +228,7 @@ bool Balance::moveObstacle(int row, int col) {
         if (ship[targetRow][targetCol] == 0) { // empty spot
             ship[targetRow][targetCol] = ship[row][col];
             ship[row][col] = 0;
+            printShip();
             return true;
         }
     }
@@ -232,77 +239,68 @@ bool Balance::moveObstacle(int row, int col) {
 
 //find which is the best target to move
 pair<int, int> Balance::findBestMove() {
-    int middleNumber = totalSum / 2;
+    double middleNumber = totalSum / 2;
     pair<int, int> bestMove = { -1, -1 };
-    int closestDiff = INT_MAX;
-    const int threshold = 1;
+    double closestDiff = INT_MAX;
+    double minColDiff = INT_MAX;
+    double minRowDiff = INT_MAX;
 
     if (leftSum > rightSum) {
+        // moving objects from the left to right
         for (int i = 0; i < rows; ++i) {
             for (int j = 0; j < cols / 2; ++j) {
                 int weight = ship[i][j];
-                // skip NAN(-1)
-                if (weight != 0 && weight != -1) {
-                    // check no object above target
-                    for (int r = 0; r < i; ++r) {
-                        if (ship[r][j] > 0) {
-                            if (!moveObstacle(r, j)) {
-                                cerr << "Error: Unable to move obstacle at (" << r << ", " << j << ")." << endl;
-                                return { -1, -1 };
-                            }
-                        }
-                    }
+                if (weight != 0 && weight != -1) { // ignore NAN(-1)
+                    double tempRightSum = rightSum + weight;
+                    double diff = abs(tempRightSum - middleNumber);
 
-                    vector<pair<int, int>> path = findShortestPath(i, j);
-                    if (!path.empty()) {
-                        int tempRightSum = rightSum + weight;
-                        int diff = abs(tempRightSum - middleNumber);
-                        if (diff < closestDiff) {
-                            closestDiff = diff;
-                            bestMove = { i, j };
-                        }
-                        if (diff <= threshold) {
-                            return bestMove;
-                        }
+                    // if more than one number can approach middleNumber then choose the one closest to the middle
+                    int colDiff = abs(j - (cols / 2 - 1));
+                    int rowDiff = abs(i - 7);
+
+                    // check if updates the best
+                    if (diff < closestDiff ||
+                        (diff == closestDiff && colDiff < minColDiff) ||
+                        (diff == closestDiff && colDiff == minColDiff && rowDiff < minRowDiff)) {
+                        closestDiff = diff;
+                        minColDiff = colDiff;
+                        minRowDiff = rowDiff;
+                        bestMove = { i, j };
                     }
                 }
             }
         }
     }
     else {
+        // moving objects from the right to left
         for (int i = 0; i < rows; ++i) {
             for (int j = cols / 2; j < cols; ++j) {
                 int weight = ship[i][j];
-                // skip NAN(-1)
-                if (weight != 0 && weight != -1) {
-                    // check no object above target
-                    for (int r = 0; r < i; ++r) {
-                        if (ship[r][j] > 0) {
-                            if (!moveObstacle(r, j)) {
-                                cerr << "Error: Unable to move obstacle at (" << r << ", " << j << ").\n";
-                                return { -1, -1 };
-                            }
-                        }
-                    }
+                if (weight != 0 && weight != -1) { // ignore NAN(-1)
+                    int tempLeftSum = leftSum + weight;
+                    int diff = abs(tempLeftSum - middleNumber);
 
-                    vector<pair<int, int>> path = findShortestPath(i, j);
-                    if (!path.empty()) {
-                        int tempLeftSum = leftSum + weight;
-                        int diff = abs(tempLeftSum - middleNumber);
-                        if (diff < closestDiff) {
-                            closestDiff = diff;
-                            bestMove = { i, j };
-                        }
-                        if (diff <= threshold) {
-                            return bestMove;
-                        }
+                    // if more than one number can approach middleNumber then choose the one closest to the middle
+                    int colDiff = abs(j - cols / 2);
+                    int rowDiff = abs(i - 7);
+
+                    // check if updates the best
+                    if (diff < closestDiff ||
+                        (diff == closestDiff && colDiff < minColDiff) ||
+                        (diff == closestDiff && colDiff == minColDiff && rowDiff < minRowDiff)) {
+                        closestDiff = diff;
+                        minColDiff = colDiff;
+                        minRowDiff = rowDiff;
+                        bestMove = { i, j };
                     }
                 }
             }
         }
     }
+
     return bestMove;
 }
+
 
 
 

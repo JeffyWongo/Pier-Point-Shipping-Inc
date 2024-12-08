@@ -103,6 +103,7 @@ int main() {
         balance.printShipWeight();
         balance.printBestMove();
         balance.printShip();
+        balance.calculateSums();
         balance.printShipWeight();
     }
 
