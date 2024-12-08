@@ -14,7 +14,7 @@ private:
     int calculateHeuristic(int row, int col, int targetRow, int targetCol);
     int leftSum;
     int rightSum;
-    int totalSum;
+    double totalSum;
     int rows = 8, cols = 12;
     bool opitimalBalance = false;
     pair<int, int> previousBestMove = { -1, -1 };
