@@ -31,9 +31,11 @@ class Load:
     # function called by main program
     @staticmethod
     def run(ship_layout, unload_list, load_list):
+        # adds their current location to the tuples
+        # 1. unload containers are at where they're specified
+        # 2. load container are at (8, 0)
         for i in range(len(unload_list)):
             unload_list[i] = unload_list[i] + (unload_list[i][1],)
-    
         for i in range(len(load_list)):
             load_list[i] = load_list[i] + ((8, 0),)
 
@@ -44,7 +46,6 @@ class Load:
     @staticmethod
     def a_star(ship_layout, full_unload_list, full_load_list):
         # ASSUMPTION: unload_list and load_list stores a pair (container (name needed) and its location)
-
         # initialize frontier, explored, and solution
         frontier = queue.PriorityQueue()
         explored = {}
@@ -61,11 +62,11 @@ class Load:
 
         # loops for each state in queue
         while not frontier.empty():
-            _, current_cost, current_h, current_layout, unload_list, load_list = frontier.get()
+            _, current_cost, _, current_layout, unload_list, load_list = frontier.get()
 
             # check goal state
             if(Load.check_goal_state(unload_list, load_list)):
-                print(f"GOAL: {current_cost}, {current_h}")
+                # print(f"GOAL: {current_cost}, {current_h}") # (good line for testing)
                 return Load.reconstruct_path(solution_map, current_layout)
 
             # finds all empty spots in each column. 3rd line filters
@@ -74,43 +75,48 @@ class Load:
             top_containers = [(x - 1, y) for x, y in empty_spots if x > 0 and current_layout[x-1][y].name!="NAN"]
 
             # Moves:
-            # 1. Every container to load to empty_spots
+            # 1. Every container to load to empty_spots (only to where we want them to go)
             # 2. Every container in top_containers to empty_spots
             # 3. Every container in top_containers to unloaded
 
-            # every load_list containers to empty_spots
+            # every load_list containers to their desired location
             for load_index, info in enumerate(load_list):
                 container, desired_cords, current_cords = info
+                # skip element if already in desired location
                 if(current_cords == desired_cords):
                     continue
                 
                 # move directly to desired_cords
-                # check if empty
+                # check if moving there is possible
                 r, c = desired_cords
                 if(desired_cords in empty_spots):
-                    layout = copy.deepcopy(current_layout)
-                    layout[r][c] = container
+                    new_layout = copy.deepcopy(current_layout)
+                    new_layout[r][c] = container
 
                     new_load_list = copy.deepcopy(load_list)
                     new_load_list[load_index] = (container, desired_cords, desired_cords)
 
-                    Load.push_new_state(frontier, explored, solution_map, layout, current_layout, unload_list, new_load_list, current_cost, (8, 0), desired_cords)
+                    Load.push_new_state(frontier, explored, solution_map, new_layout, current_layout, unload_list, new_load_list, current_cost, (8, 0), desired_cords)
 
             # every top_container containers to empty_spots or unload
             for container_cord in top_containers:
                 r, c = container_cord
 
+                # checks if container (to move) is on load list
+                # if yes, skip
                 is_on_load_list = False
-                for load_index, load_container in enumerate(load_list): # TODO: doesn't deal with duplicates
+                for load_index, load_container in enumerate(load_list):
                     if(load_container[2] == container_cord):
                         is_on_load_list = True
                         break
                 if(is_on_load_list):
                     continue
 
+                # checks if container (to move) is on unload list
+                # if yes, note that and which element in the unload list
                 is_on_unload_list = False
                 unload_index = -1
-                for idx, unload_container in enumerate(unload_list): # TODO: doesn't deal with duplicates
+                for idx, unload_container in enumerate(unload_list):
                     if(unload_container[2] == container_cord):
                         is_on_unload_list = True
                         unload_index = idx
@@ -118,38 +124,41 @@ class Load:
 
                 # move to every possible empty spot
                 for empty_cord in empty_spots:
-                    # if top_container and empty_spot are same col. will lead to floating container
+                    # if top_container and empty_spot are same col, skip. will lead to floating container
+                    # if empty cord is beyond bounds, skip
                     if(empty_cord[1]==c or empty_cord[0]==8):
                         continue
 
-                    layout = copy.deepcopy(current_layout)
+                    new_layout = copy.deepcopy(current_layout)
                     new_unload_list = copy.deepcopy(unload_list)
 
                     # assumes heuristic functions will take care of everything
+                    # update current_position in unload list if it's on
                     if is_on_unload_list:
                         unload_item = list(new_unload_list[unload_index])
                         unload_item[2] = empty_cord
                         new_unload_list[unload_index] = tuple(unload_item)
 
                     # swap
-                    layout[empty_cord[0]][empty_cord[1]], layout[r][c] = (
-                        layout[r][c], 
-                        layout[empty_cord[0]][empty_cord[1]]
+                    new_layout[empty_cord[0]][empty_cord[1]], new_layout[r][c] = (
+                        new_layout[r][c], 
+                        new_layout[empty_cord[0]][empty_cord[1]]
                     )
 
-                    Load.push_new_state(frontier, explored, solution_map, layout, current_layout, new_unload_list, load_list, current_cost, container_cord, empty_cord)
+                    Load.push_new_state(frontier, explored, solution_map, new_layout, current_layout, new_unload_list, load_list, current_cost, container_cord, empty_cord)
 
-                    
+                # if container (to move) is on unload list, unload
                 if is_on_unload_list:
-                    layout = copy.deepcopy(current_layout)
-                    layout[r][c] = Container()
+                    new_layout = copy.deepcopy(current_layout)
+                    new_layout[r][c] = Container()
 
+                    # update current_position in unload list
                     new_unload_list = copy.deepcopy(unload_list)
                     unload_item = list(new_unload_list[unload_index])
                     unload_item[2] = (8,0)
                     new_unload_list[unload_index] = tuple(unload_item)
                     
-                    Load.push_new_state(frontier, explored, solution_map, layout, current_layout, new_unload_list, load_list, current_cost, container_cord, (8, 0))
+                    Load.push_new_state(frontier, explored, solution_map, new_layout, current_layout, new_unload_list, load_list, current_cost, container_cord, (8, 0))
         return None
             
     # find highest empty slot in each column
@@ -159,11 +168,13 @@ class Load:
         transposed_layout = zip(*current_layout)
         for col, column in enumerate(transposed_layout): # iterate through columns
             spot_found = False
+            # iterate through rows (upward) till empty column is found
             for row, item in enumerate(column):
                 if(item.name == "UNUSED"):
                     empty_spots.append((row, col))
                     spot_found = True
                     break
+            # if empty container not found in column
             if not spot_found:
                 empty_spots.append((8, col))
         return empty_spots
@@ -173,41 +184,46 @@ class Load:
         # make layout hashable
         hashable_layout = tuple(tuple(row) for row in new_layout)
 
-        # Check if the layout has already been explored
+        # check if the layout has already been explored
         if explored.get(hashable_layout, False):
             return
         explored[hashable_layout] = True
 
-        # Record the current layout as the parent of the new layout in solution_map
+        # record the current layout as the parent of the new layout in solution_map
         solution_map[hashable_layout] = (current_layout, container_cord, empty_cord)
 
-        # Calculate the cost and heuristic
+        # calculate the cost and heuristic
         highest_empty_r = Load.find_highest_between(current_layout, container_cord, empty_cord)
-        # cost = abs(container_cord[0] - empty_cord[0]) + abs(container_cord[1] - empty_cord[1])
         cost = abs(container_cord[1] - empty_cord[1]) + abs(highest_empty_r - container_cord[0]) + abs(highest_empty_r - empty_cord[0])
         h = Load.calc_heuristic(unload_list, load_list)
 
-        # Add the new state to the frontier
+        # add the new state to the frontier
         frontier.put((current_cost + cost + h, current_cost + cost, h, new_layout, unload_list, load_list))
 
+    # finds highest container between container (to move) and empty_cord
+    # then add 1 to that number for the empty row number
     def find_highest_between(current_layout, container_cord, empty_cord):
         empty_spots = Load.find_top_empty_containers(current_layout)
         highest_empty_r = max(container_cord[0], empty_cord[0])
         
         for col_index in range(min(container_cord[1], empty_cord[1]), max(container_cord[1], empty_cord[1])):
             candidate_r = empty_spots[col_index][0]
-            if(col_index==container_cord[1] or col_index==empty_cord[1]):
+            # container to move is not an empty spot (edge case), minus 1
+            if(col_index==container_cord[1]):
                 candidate_r -= 1
             highest_empty_r = max(highest_empty_r, candidate_r)
         return highest_empty_r
 
     # reconstruct path when solution is found
+    # returns list of tuple (steps)
+    # each tuple has (current_layout, location of next container to move, location to move that container to)
     @staticmethod
     def reconstruct_path(solution_map, final_layout):
         path = []
         hashable_layout = tuple(tuple(row) for row in final_layout)
         layout_info = solution_map[hashable_layout]
 
+        # None because nothing has to move in the final layout
         path.append((final_layout, None, None))
 
         while layout_info[1] is not None:
@@ -217,20 +233,9 @@ class Load:
             previous_layout_info = solution_map[hashable_layout]
             layout_info = previous_layout_info
 
-
         path.reverse()
-        
-        return path
 
-    @staticmethod
-    def equal_states(layout1, layout2):
-        for r in range(8):
-            for c in range(12):
-                container1 = layout1[r][c]
-                container2 = layout2[r][c]
-                if container1.name != container2.name or container1.weight != container2.weight:
-                    return False
-        return True
+        return path
 
     # check if goal state is satisfied
     @staticmethod
@@ -247,7 +252,6 @@ class Load:
     
     # check if containers to load are on the ship
     def check_load_goal(load_list):
-        # check if every container in load_list is in ship_containers
         for _, initial_location, current_location in load_list:
             if initial_location != current_location:
                 return False
@@ -259,23 +263,14 @@ class Load:
     def calc_heuristic(unload_list, load_list):
         return Load.calc_unload_h(unload_list) + Load.calc_load_h(load_list)
 
-
     # part of heuristic for unloading
     @staticmethod
     def calc_unload_h(unload_list):
         sum = 0
-
         for _, _, curr_location in unload_list:
             r, c = curr_location
-            sum += Load.load_unload_heuristic(r, c)
+            sum += abs(8 - r) + c
         return sum
-
-
-    # heuristic for an individual container to unload
-    @staticmethod
-    def load_unload_heuristic(x: int, y: int):
-        return abs(8 - x) + y
-
 
     # part of heuristic for loading
     @staticmethod
@@ -287,6 +282,18 @@ class Load:
             sum += abs(r-x) + abs(c-y)
         return sum
 
+    # check if two layouts are equal (for testing)
+    @staticmethod
+    def equal_states(layout1, layout2):
+        for r in range(8):
+            for c in range(12):
+                container1 = layout1[r][c]
+                container2 = layout2[r][c]
+                if container1.name != container2.name or container1.weight != container2.weight:
+                    return False
+        return True
+    
+    # print ship layout (for testing)
     @staticmethod
     def print_layout(test_layout):
         if(test_layout==None):
@@ -316,11 +323,11 @@ nan_container = Container("NAN", -1)
 
 # 8 x 12
 test_layout = [[Container() for i in range(0,12)] for j in range(0,8)]
-test_layout[0][0] = container1
-test_layout[1][0] = container1
-test_layout[0][2] = container1
-test_layout[1][2] = container2
-test_layout[0][10] = container4
+# test_layout[0][0] = container1
+# test_layout[1][0] = container1
+# test_layout[0][2] = container1
+# test_layout[1][2] = container2
+# test_layout[0][10] = container4
 # test_layout[0][1] = nan_container
 
 # extreme case
@@ -342,7 +349,7 @@ test_layout[0][10] = container4
 # test_output = Load.run(test_layout, [(container1, (0, 0))], [(container4, (0, 10)), (container5, (0, 11))])
 # test_output = Load.run(test_layout, [(container1, (0, 0))], [(container6, (0, 11))])
 # test_output = Load.run(test_layout, [(container1, (0, 0)), (container3, (0, 2))], [(container6, (0, 11))])
-test_output = Load.run(test_layout, [(container1, (0, 0)), (container1, (0, 2))], [(container4, (1, 9))])
+# test_output = Load.run(test_layout, [(container1, (0, 0)), (container1, (0, 2))], [(container4, (1, 9))])
 
 # NAN test case
 # for i in range(0, 12):
@@ -413,14 +420,14 @@ test_output = Load.run(test_layout, [(container1, (0, 0)), (container1, (0, 2))]
 # test_output = Load.run(test_layout, [(container3, (0, 3)), (container4, (0, 4))], [(container6, (1, 1)), (container5, (1, 5))])
 
 # test case 6
-# test_layout[0][0] = nan_container
-# test_layout[0][11] = nan_container
-# test_layout[0][1] = container1
-# test_layout[0][2] = container2
-# test_layout[0][3] = container3
-# test_layout[1][1] = container4
+test_layout[0][0] = nan_container
+test_layout[0][11] = nan_container
+test_layout[0][1] = container1
+test_layout[0][2] = container2
+test_layout[0][3] = container3
+test_layout[1][1] = container4
 
-# test_output = Load.run(test_layout, [(container1, (0, 1)), (container3, (0, 3))], [(container6, (1, 0))])
+test_output = Load.run(test_layout, [(container1, (0, 1)), (container3, (0, 3))], [(container6, (1, 0))])
 
 if test_output is not None:
     print("SOLUTION:")
