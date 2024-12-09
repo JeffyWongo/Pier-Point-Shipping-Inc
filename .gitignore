@@ -3,3 +3,4 @@ program.exe
 a.exe
 backend/a.exe
 backend/__pycache__
+*.txt
