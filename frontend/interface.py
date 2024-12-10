@@ -169,9 +169,14 @@ class CraneApp(tk.Tk):
         bottom_frame = tk.Frame(load_window, bg='gray30')
         bottom_frame.pack(pady=20, fill='x')
 
+        # For alignment
+        bottom_frame.grid_columnconfigure(0, weight=1, uniform="group1")
+        bottom_frame.grid_columnconfigure(1, weight=1, uniform="group1")
+        bottom_frame.grid_columnconfigure(2, weight=1, uniform="group1")
+
         # Time Left Box
         time_frame = tk.Frame(bottom_frame, bg='gray30')
-        time_frame.grid(row=0, column=0, padx=20, pady=5, sticky='ew')
+        time_frame.grid(row=0, column=0, padx=20, pady=5, sticky='ns')
 
         time_label = tk.Label(time_frame, text="Estimated time left:", font=("SF Pro", 15), bg='gray30', fg='white')
         time_label.pack(side="left", padx=5)
@@ -193,11 +198,11 @@ class CraneApp(tk.Tk):
                                 command=lambda: self.submit_comment(comment_entry))
         submit_button.grid(row=2, column=0, pady=10)
 
-        # start button
+        # start/next button
         button_frame = tk.Frame(bottom_frame, bg='gray30')
-        button_frame.grid(row=0, column=2, padx=20, pady=5, sticky='e')
+        button_frame.grid(row=0, column=2, padx=20, pady=5)
 
-        start_button = tk.Button(button_frame, text="Start", font=("SF Pro", 12), bg='white', width=10, height=2)
+        start_button = tk.Button(button_frame, text="Next", font=("SF Pro", 12), bg='white', width=10, height=2)
         start_button.pack()
 
     def balance(self):
