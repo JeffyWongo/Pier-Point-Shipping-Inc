@@ -130,18 +130,18 @@ class CraneApp(tk.Tk):
             with open("logfile2024.txt", "a") as log_file:
                 log_file.write(log_entry)
 
-        balance_window = tk.Toplevel(self)
-        balance_window.title("Load Unload")
-        balance_window.geometry("1920x1080")
-        balance_window.configure(bg='gray30')
+        load_window = tk.Toplevel(self)
+        load_window.title("Load Unload")
+        load_window.geometry("1920x1080")
+        load_window.configure(bg='gray30')
 
-        home_button = tk.Button(balance_window, text="Home", font=("SF Pro", 12), bg='white', command=balance_window.destroy)
+        home_button = tk.Button(load_window, text="Home", font=("SF Pro", 12), bg='white', command=load_window.destroy)
         home_button.place(x=10, y=10)
 
-        title_label = tk.Label(balance_window, text="Load Unload", font=("SF Pro", 30, "bold"), bg='gray30', fg='white')
+        title_label = tk.Label(load_window, text="Load Unload", font=("SF Pro", 30, "bold"), bg='gray30', fg='white')
         title_label.pack(pady=20)
 
-        grid_frame = tk.Frame(balance_window, bg='gray30')
+        grid_frame = tk.Frame(load_window, bg='gray30')
         grid_frame.pack(pady=20)
 
         #display grid
@@ -165,9 +165,23 @@ class CraneApp(tk.Tk):
                                         width=15, height=4, bg=bg_color, relief='solid')
                 container_label.grid(row=r, column=c, padx=2, pady=2)
 
+        # bottom frame for comments and buttons
+        bottom_frame = tk.Frame(load_window, bg='gray30')
+        bottom_frame.pack(pady=20, fill='x')
+
+        # Time Left Box
+        time_frame = tk.Frame(bottom_frame, bg='gray30')
+        time_frame.grid(row=0, column=0, padx=20, pady=5, sticky='ew')
+
+        time_label = tk.Label(time_frame, text="Estimated time left:", font=("SF Pro", 15), bg='gray30', fg='white')
+        time_label.pack(side="left", padx=5)
+
+        time_display = tk.Label(time_frame, text="00:00", font=("SF Pro", 15, "bold"), bg='gray20', fg='white', relief='solid', width=10)
+        time_display.pack(side="left", padx=5)
+
         # Comment Box and Submit Button
-        comment_frame = tk.Frame(balance_window, bg='gray30')
-        comment_frame.pack(pady=20)
+        comment_frame = tk.Frame(bottom_frame, bg='gray30')
+        comment_frame.grid(row=0, column=1, padx=20, pady=5)
 
         comment_label = tk.Label(comment_frame, text="Comments:", font=("SF Pro", 15), bg='gray30', fg='white')
         comment_label.grid(row=0, column=0, padx=10, pady=5, sticky='w')
@@ -178,6 +192,13 @@ class CraneApp(tk.Tk):
         submit_button = tk.Button(comment_frame, text="Submit", font=("SF Pro", 12), bg='white',
                                 command=lambda: self.submit_comment(comment_entry))
         submit_button.grid(row=2, column=0, pady=10)
+
+        # start button
+        button_frame = tk.Frame(bottom_frame, bg='gray30')
+        button_frame.grid(row=0, column=2, padx=20, pady=5, sticky='e')
+
+        start_button = tk.Button(button_frame, text="Start", font=("SF Pro", 12), bg='white', width=10, height=2)
+        start_button.pack()
 
     def balance(self):
         filename = filedialog.askopenfilename(title="Select Manifest", filetypes=[("Text Files", "*.txt")])
