@@ -25,7 +25,10 @@ class LoginPage(tk.Frame):
         # login
         login_button = tk.Button(self, text="Login", command=self.handle_login, font=("SF Pro", 15), bg="white", width=15, height=2)
         login_button.pack(pady=20)
+
+        # quality of life
         self.master.bind('<Return>', lambda event: self.handle_login())
+        self.username_entry.focus_set()
 
     def handle_login(self):
         username = self.username_entry.get()
