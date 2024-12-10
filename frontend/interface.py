@@ -174,15 +174,29 @@ class CraneApp(tk.Tk):
         bottom_frame.grid_columnconfigure(1, weight=1, uniform="group1")
         bottom_frame.grid_columnconfigure(2, weight=1, uniform="group1")
 
-        # Time Left Box
-        time_frame = tk.Frame(bottom_frame, bg='gray30')
-        time_frame.grid(row=0, column=0, padx=20, pady=5, sticky='ns')
+        # Parent frame for both time frames
+        time_frames = tk.Frame(bottom_frame, bg='gray30')
+        time_frames.grid(row=0, column=0, padx=20, pady=5, sticky='ns')
 
-        time_label = tk.Label(time_frame, text="Estimated time left:", font=("SF Pro", 15), bg='gray30', fg='white')
-        time_label.pack(side="left", padx=5)
+        # First Time Left Box
+        time_frame = tk.Frame(time_frames, bg='gray30')
+        time_frame.grid(row=0, column=0, padx=20, pady=5)
+
+        time_label = tk.Label(time_frame, text="Estimated Total Time Left:", font=("SF Pro", 15), bg='gray30', fg='white')
+        time_label.grid(row=0, column=0, padx=5)
 
         time_display = tk.Label(time_frame, text="00:00", font=("SF Pro", 15, "bold"), bg='gray20', fg='white', relief='solid', width=10)
-        time_display.pack(side="left", padx=5)
+        time_display.grid(row=0, column=1, padx=5)
+
+        # Second Time Left Box
+        time_frame_2 = tk.Frame(time_frames, bg='gray30')
+        time_frame_2.grid(row=1, column=0, padx=20, pady=5)
+
+        time_label_2 = tk.Label(time_frame_2, text="Time Left for Current Move:", font=("SF Pro", 15), bg='gray30', fg='white')
+        time_label_2.grid(row=0, column=0, padx=5)
+
+        time_display_2 = tk.Label(time_frame_2, text="00:00", font=("SF Pro", 15, "bold"), bg='gray20', fg='white', relief='solid', width=10)
+        time_display_2.grid(row=0, column=1, padx=5)
 
         # Comment Box and Submit Button
         comment_frame = tk.Frame(bottom_frame, bg='gray30')
@@ -200,10 +214,10 @@ class CraneApp(tk.Tk):
 
         # start/next button
         button_frame = tk.Frame(bottom_frame, bg='gray30')
-        button_frame.grid(row=0, column=2, padx=20, pady=5)
+        button_frame.grid(row=0, column=2, padx=20)
 
-        start_button = tk.Button(button_frame, text="Next", font=("SF Pro", 12), bg='white', width=10, height=2)
-        start_button.pack()
+        next_button = tk.Button(button_frame, text="Next", font=("SF Pro", 12), bg='white', width=10, height=2)
+        next_button.pack()
 
     def balance(self):
         filename = filedialog.askopenfilename(title="Select Manifest", filetypes=[("Text Files", "*.txt")])
