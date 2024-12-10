@@ -25,6 +25,7 @@ class LoginPage(tk.Frame):
         # login
         login_button = tk.Button(self, text="Login", command=self.handle_login, font=("SF Pro", 15), bg="white", width=15, height=2)
         login_button.pack(pady=20)
+        self.master.bind('<Return>', lambda event: self.handle_login())
 
     def handle_login(self):
         username = self.username_entry.get()
@@ -127,14 +128,14 @@ class CraneApp(tk.Tk):
                 log_file.write(log_entry)
 
         balance_window = tk.Toplevel(self)
-        balance_window.title("Balance")
+        balance_window.title("Load Unload")
         balance_window.geometry("1920x1080")
         balance_window.configure(bg='gray30')
 
         home_button = tk.Button(balance_window, text="Home", font=("SF Pro", 12), bg='white', command=balance_window.destroy)
         home_button.place(x=10, y=10)
 
-        title_label = tk.Label(balance_window, text="Balance", font=("SF Pro", 30, "bold"), bg='gray30', fg='white')
+        title_label = tk.Label(balance_window, text="Load Unload", font=("SF Pro", 30, "bold"), bg='gray30', fg='white')
         title_label.pack(pady=20)
 
         grid_frame = tk.Frame(balance_window, bg='gray30')
