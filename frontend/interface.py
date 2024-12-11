@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import filedialog
+from tkinter import filedialog, messagebox
 from datetime import datetime
 from Container import Container
 from Ship import Ship
@@ -75,7 +75,6 @@ class CraneApp(tk.Tk):
         tk.Button(btn_frame, text="Balance", command=self.balance, font=("SF Pro", 15),
                   bg="white", width=25, height=3).grid(row=0, column=1, padx=10, pady=5)
 
-
     def balance(self):
         filename = filedialog.askopenfilename(title="Select Manifest", filetypes=[("Text Files", "*.txt")])
         if not filename:
@@ -106,18 +105,18 @@ class CraneApp(tk.Tk):
         rows, cols = 8, 12
         for r in range(rows):
             for c in range(cols):
-                container = ship.ship[rows - r - 1][c]
+                container = ship.ship[7 - r][c]
                         
                 container_label = tk.Label(grid_frame, text=container.name, font=("SF Pro", 10),
                             width=15, height=4, bg=container.color, relief='solid')
-                container_label.grid(row=r, column=c, padx=2, pady=2)
+                container_label.grid(row=7 - r, column=c, padx=2, pady=2)
                     
         # "Next" Button
         next_button_frame = tk.Frame(window, bg='gray30')
         next_button_frame.pack(pady=10)
 
         next_button = tk.Button(next_button_frame, text="Next", font=("SF Pro", 12), bg='white', 
-                                command=lambda: self.next_move(ship, grid_frame))
+                                command=lambda: self.next_move(ship, grid_frame, window))
         next_button.grid(row=0, column=0)
 
         # Comment Box and Submit Button
@@ -153,44 +152,68 @@ class CraneApp(tk.Tk):
             feedback_label.grid(row=3, column=0, pady=5)
             self.after(3000, feedback_label.destroy)
 
-    def next_move(self, ship, grid_frame):
+    def next_move(self, ship, grid_frame, window):
         best_move = ship.find_best_move()
-        # if best_move == (-1, -1):
-        #     print("No valid move found.")
-        #     return
+        
+        if ship.is_balanced():
+            if messagebox.showinfo("Balance Achieved", "Optimal Balance Achieved!"):
+                window.destroy()
+            return
         
         start_row, start_col = best_move
+        print(start_row)
+        print(start_col)
         container = ship.ship[start_row][start_col]
         path = ship.find_shortest_path(start_row, start_col)
-        
+        print(container.row)
+        print(container.col)
         # Animate the container movement
         self.animate_path(path, container, grid_frame)
+        ship.modify_ship(path[-1][0], path[-1][1], container.weight)
+        ship.previous_best_move = path[-1]
+        ship.modify_ship(start_row, start_col, 0)
 
-    
     def animate_path(self, path, container, grid_frame):
         def move(step=0):
+            if step == 0:
+                print(container.row)
+                print(container.col)
+                # Clear the original position at the start of the animation
+                original_label = grid_frame.grid_slaves(row=container.row, column=container.col)[0]
+                original_label.config(
+                    text="UNUSED",
+                    bg="white"
+                )
+            
             if step > 0:
                 # Clear the previous position
                 prev_row, prev_col = path[step - 1]
-                prev_label = grid_frame.grid_slaves(row=8 - prev_row - 1, column=prev_col)[0]
+                prev_label = grid_frame.grid_slaves(row=prev_row, column=prev_col)[0]
                 prev_label.config(
                     text="UNUSED", 
                     bg="white"
                 )
-
+            
             if step < len(path):
                 # Update the current position
                 row, col = path[step]
-                curr_label = grid_frame.grid_slaves(row=8 - row - 1, column=col)[0]
+                curr_label = grid_frame.grid_slaves(row=row, column=col)[0]
                 curr_label.config(
-                    text=container.get_info(), 
+                    text=container.name, 
                     bg="lightgreen"
                 )
                 # Schedule the next step
                 grid_frame.after(500, move, step + 1)
+                
             else:
-                print("Animation complete!")
-
+                # At the end of the path, set the container at its final destination
+                final_row, final_col = path[-1]
+                final_label = grid_frame.grid_slaves(row=final_row, column=final_col)[0]
+                final_label.config(
+                    text=container.name,
+                    bg=container.color
+                )
+   
         move()  # Start the animation
 
 
