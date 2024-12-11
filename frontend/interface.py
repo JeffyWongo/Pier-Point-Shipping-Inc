@@ -213,7 +213,10 @@ class CraneApp(tk.Tk):
                 container = next((cont for cont in containers if cont.row == rows - r and cont.col == c + 1), None)
                 if container:
                     info = container.get_info()
-                    bg_color = name_colors.get(container.name, 'white')
+                    if container.name == "NAN":
+                        bg_color = 'gray20'  # Set background color for 'NAN' containers
+                    else:
+                        bg_color = name_colors.get(container.name, 'white')
 
                     container_label = tk.Label(grid_frame, text=info, font=("SF Pro", 10),
                                                width=15, height=4, bg=bg_color, relief='solid')
@@ -235,6 +238,10 @@ class CraneApp(tk.Tk):
         if(container.name != "UNUSED"):
             return
 
+        if(container in self.load_containers):
+            self.load_containers.remove(container)
+            return
+
         self.load_containers.append(container)
         self.update_grid(container, "blue")  # Highlight with blue color
         print("")
@@ -248,6 +255,10 @@ class CraneApp(tk.Tk):
         if(container.name == "UNUSED" or container.name == "NAN"):
             return
         
+        if(container in self.unload_containers):
+            self.unload_containers.remove(container)
+            return
+
         self.unload_containers.append(container)
         self.update_grid(container, "red")  # Highlight with red color
         print("")
