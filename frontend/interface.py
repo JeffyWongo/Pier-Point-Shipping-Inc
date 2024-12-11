@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import filedialog
 import random
 from datetime import datetime
+from containerPrompt import ContainerPromptWindow
 
 class LoginPage(tk.Frame):
     def __init__(self, master, on_login):
@@ -245,8 +246,9 @@ class CraneApp(tk.Tk):
             self.load_containers.remove(container)
             self.reset_container_color(container, name_colors)
         else:
-            self.load_containers.append(container)
             self.set_container_color(container, "deep sky blue")  # Highlight with blue color
+            ContainerPromptWindow(self, container)
+            self.load_containers.append(container)
         print("")
         print("LOAD")
         for item in self.load_containers:
