@@ -25,10 +25,10 @@ class Ship:
                 parts = line.split(", ")
 
                 position = parts[0].strip("[]").split(",")
-                weight = parts[1].strip("{}")
+                weight = int(parts[1].strip("{}"))
                 name = parts[2]
 
-                row = int(position[0]) - 1  # Adjust for 0-based indexing
+                row = 7 - (int(position[0]) - 1)  # flip and adjust for 0-based indexing
                 col = int(position[1]) - 1  # Adjust for 0-based indexing
 
                 if name == "NAN":
@@ -36,10 +36,10 @@ class Ship:
                 elif name == "UNUSED":
                     color = 'white'
                 else:
-                    color = 'red'
+                    color = 'lightgreen'
                     container_count += 1
                 
-                container = Container(row=row + 1, col=col + 1, weight=weight, name=name, color=color)
+                container = Container(row=7 - row, col=col + 1, weight=weight, name=name, color=color)
                 self.ship[row][col] = container
 
             # Log the file reading
@@ -47,7 +47,6 @@ class Ship:
             with open("logfile2024.txt", "a") as log_file:
                 log_file.write(log_entry)
 
-                
     def calculate_heuristic(self, row, col, target_row, target_col):
         return abs(row - target_row) + abs(col - target_col)
 
@@ -115,7 +114,6 @@ class Ship:
 
         return []
 
-
     def calculate_sums(self):
         self.left_sum = self.right_sum = self.total_sum = 0
         for i in range(self.rows):
@@ -147,26 +145,6 @@ class Ship:
         tolerance = total_weight * 0.1  # 10%
         return abs(self.left_sum - self.right_sum) <= tolerance
 
-    # def print_best_move(self):
-    #     best_move = self.find_best_move()
-    #     if self.previous_best_move == best_move:
-    #         print("Optimal balance achieved!")
-    #         self.optimal_balance = True
-    #         return
-
-    #     row, col = best_move
-    #     path = self.find_shortest_path(row, col)
-    #     if path:
-    #         print(f"Target position: [{row}][{col}] = {self.container_weight(row, col)}")
-    #         print("Successful! Here's the route:")
-    #         for i, step in enumerate(path, 1):
-    #             print(f"Step {i}: {step}")
-    #         self.modify_ship(path[-1][0], path[-1][1], self.container_weight(row, col))
-    #         self.previous_best_move = path[-1]
-    #         self.modify_ship(row, col, 0)
-    #     else:
-    #         print("Failed, can't find a route.")
-
     def move_obstacle(self, row, col):
         target_col = col + 1 if col >= self.cols // 2 else col - 1
         if not (0 <= target_col < self.cols):
@@ -185,14 +163,15 @@ class Ship:
                 return True
         return False
 
-
     def find_best_move(self):
         middle_number = self.total_sum / 2
         best_move = (-1, -1)
         closest_diff = inf
         min_col_diff = inf
         min_row_diff = inf
-
+ 
+        self.calculate_sums()
+        self.print_ship_weight()
         side_condition = self.left_sum > self.right_sum
         range_col = range(self.cols // 2) if side_condition else range(self.cols // 2, self.cols)
 
@@ -225,7 +204,25 @@ class Ship:
 
         return best_move
 
+    # def print_best_move(self):
+    #     best_move = self.find_best_move()
+    #     if self.previous_best_move == best_move:
+    #         print("Optimal balance achieved!")
+    #         self.optimal_balance = True
+    #         return
 
+    #     row, col = best_move
+    #     path = self.find_shortest_path(row, col)
+    #     if path:
+    #         print(f"Target position: [{row}][{col}] = {self.container_weight(row, col)}")
+    #         print("Successful! Here's the route:")
+    #         for i, step in enumerate(path, 1):
+    #             print(f"Step {i}: {step}")
+    #         self.modify_ship(path[-1][0], path[-1][1], self.container_weight(row, col))
+    #         self.previous_best_move = path[-1]
+    #         self.modify_ship(row, col, 0)
+    #     else:
+    #         print("Failed, can't find a route.")
 
 # if __name__ == "__main__":
 #     balance = Balance(file)
