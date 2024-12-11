@@ -64,6 +64,7 @@ class CraneApp(tk.Tk):
         self.grid_frame = tk.Frame(self)
 
         self.processed_moves = False
+        self.containers = []
         self.best_moves = []
         self.current_step = 0
 
@@ -107,7 +108,7 @@ class CraneApp(tk.Tk):
         # log the file opening
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M")
         with open(filename, 'r') as file:
-            containers = []
+            self.containers = []
             name_colors = {}
             container_count = 0
             for line in file:
@@ -130,7 +131,7 @@ class CraneApp(tk.Tk):
                                         random.randint(150, 255),  # random light green
                                         random.randint(150, 255))  # random light blue
                             container = Container(row=row, col=col, weight=weight, name=name)
-                            containers.append(container)
+                            self.containers.append(container)
                             container_count += 1
                         except ValueError:
                             print(f"Skipping invalid line: {line}")
@@ -154,7 +155,7 @@ class CraneApp(tk.Tk):
         self.grid_frame.pack(pady=20)
 
         # display grid
-        self.display_container_select(containers, name_colors, self.grid_frame)
+        self.display_container_select(name_colors, self.grid_frame)
 
         # bottom frame for comments and buttons
         bottom_frame = tk.Frame(load_window, bg='gray30')
@@ -215,17 +216,19 @@ class CraneApp(tk.Tk):
         # call Load Unload
         if not self.processed_moves:
             self.processed_moves = True
+            for item in self.containers:
+                print(f"{item.row}, {item.col}: {item.name} is {item.weight}")
         # show next move
         else:
             self.current_step += 1
 
     # takes containers, colors, and frame element
     # prints out ship layout
-    def display_container_select(self, containers, name_colors, grid_frame):
+    def display_container_select(self, name_colors, grid_frame):
         rows, cols = 8, 12
         for r in range(rows):
             for c in range(cols):
-                container = next((cont for cont in containers if cont.row == rows - r and cont.col == c + 1), None)
+                container = next((cont for cont in self.containers if cont.row == rows - r and cont.col == c + 1), None)
                 if container:
                     info = container.get_info()
                     if container.name == "NAN":
@@ -294,7 +297,7 @@ class CraneApp(tk.Tk):
         widget.config(bg=color)
 
     def set_container_empty(self, container):
-        new_text = f"Pos: [{container.row:02},{container.col:02}]\nWeight: {00000}\nName: UNUSED"
+        new_text = f"Pos: [{container.row:02},{container.col:02}]\nWeight: 00000\nName: UNUSED"
         widget = self.find_container_widget(container)
         container.weight = 0
         container.name = "UNUSED"
@@ -320,11 +323,11 @@ class CraneApp(tk.Tk):
 
     # takes containers, colors, and frame element
     # prints out ship layout
-    def display_containers(self, containers, name_colors, grid_frame):
+    def display_containers(self, name_colors, grid_frame):
         rows, cols = 8, 12
         for r in range(rows):
             for c in range(cols):
-                container = next((cont for cont in containers if cont.row == rows - r and cont.col == c + 1), None)
+                container = next((cont for cont in self.containers if cont.row == rows - r and cont.col == c + 1), None)
                 if container:
                     info = container.get_info()
                     if container.name == "NAN":
