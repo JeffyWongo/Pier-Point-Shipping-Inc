@@ -237,7 +237,7 @@ class CraneApp(tk.Tk):
 
     # load
     def on_left_click(self, event, container, name_colors):
-        if(container.name != "UNUSED"):
+        if(container.name != "UNUSED" and container not in self.load_containers):
             return
         if container in self.unload_containers:
             return
@@ -245,15 +245,17 @@ class CraneApp(tk.Tk):
         if container in self.load_containers:
             self.load_containers.remove(container)
             self.reset_container_color(container, name_colors)
+            self.set_container_empty(container)
         else:
             self.set_container_color(container, "deep sky blue")  # Highlight with blue color
             ContainerPromptWindow(self, container)
+
             self.load_containers.append(container)
-        print("")
-        print("LOAD")
-        for item in self.load_containers:
-            print(f"{item.name}: {item.row}, {item.col}")
-        print("=============")
+        # print("")
+        # print("LOAD")
+        # for item in self.load_containers:
+        #     print(f"{item.name}: {item.row}, {item.col}")
+        # print("=============")
 
     # unload
     def on_right_click(self, event, container, name_colors):
@@ -261,26 +263,29 @@ class CraneApp(tk.Tk):
             return
         if container in self.load_containers:
             return
-        
+
         if container in self.unload_containers:
             self.unload_containers.remove(container)
             self.reset_container_color(container, name_colors)
         else:
             self.unload_containers.append(container)
             self.set_container_color(container, "red2")  # Highlight with red color
-        print("")
-        print("UNLOAD")
-        for item in self.unload_containers:
-            print(f"{item.name}: {item.row}, {item.col}")
-        print("=============")
+        # print("")
+        # print("UNLOAD")
+        # for item in self.unload_containers:
+        #     print(f"{item.name}: {item.row}, {item.col}")
+        # print("=============")
 
     def set_container_color(self, container, color):
-        for widget in self.grid_frame.winfo_children():
-            # Check if the widget is the label for the given container
-            widget_text = widget.cget('text').splitlines()[0]
-            expected_text = f"Pos: [{container.row:02},{container.col:02}]"
-            if widget_text == expected_text:
-                widget.config(bg=color)  # Update background color
+        widget = self.find_container_widget(container)
+        widget.config(bg=color)
+
+    def set_container_empty(self, container):
+        new_text = f"Pos: [{container.row:02},{container.col:02}]\nWeight: {00000}\nName: UNUSED"
+        widget = self.find_container_widget(container)
+        container.weight = 0
+        container.name = "UNUSED"
+        widget.config(text=new_text)
 
     def reset_container_color(self, container, name_colors):
         # Get the container's name and lookup its original color from name_colors
@@ -291,6 +296,14 @@ class CraneApp(tk.Tk):
             original_color = 'white'  # Default color if not found in name_colors
 
         self.set_container_color(container, original_color)
+
+    def find_container_widget(self, container):
+        for widget in self.grid_frame.winfo_children():
+            # Check if the widget is the label for the given container
+            widget_text = widget.cget('text').splitlines()[0]
+            expected_text = f"Pos: [{container.row:02},{container.col:02}]"
+            if widget_text == expected_text:
+                return widget
 
     # takes containers, colors, and frame element
     # prints out ship layout
