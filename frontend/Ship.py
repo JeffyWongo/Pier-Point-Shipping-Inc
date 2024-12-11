@@ -39,7 +39,7 @@ class Ship:
                     color = 'lightgreen'
                     container_count += 1
                 
-                container = Container(row=7 - row, col=col + 1, weight=weight, name=name, color=color)
+                container = Container(row=row, col=col, weight=weight, name=name, color=color)
                 self.ship[row][col] = container
 
             # Log the file reading
@@ -164,14 +164,14 @@ class Ship:
         return False
 
     def find_best_move(self):
+        self.calculate_sums()
+        self.print_ship_weight()
         middle_number = self.total_sum / 2
         best_move = (-1, -1)
         closest_diff = inf
         min_col_diff = inf
         min_row_diff = inf
- 
-        self.calculate_sums()
-        self.print_ship_weight()
+    
         side_condition = self.left_sum > self.right_sum
         range_col = range(self.cols // 2) if side_condition else range(self.cols // 2, self.cols)
 
@@ -203,6 +203,10 @@ class Ship:
                     best_move = (i, j)
 
         return best_move
+    
+    def modify_ship(self, row, col, weight):
+        container = self.ship[row][col]
+        container.weight = weight
 
     # def print_best_move(self):
     #     best_move = self.find_best_move()

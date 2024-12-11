@@ -105,11 +105,11 @@ class CraneApp(tk.Tk):
         rows, cols = 8, 12
         for r in range(rows):
             for c in range(cols):
-                container = ship.ship[r][c]
+                container = ship.ship[7 - r][c]
                         
                 container_label = tk.Label(grid_frame, text=container.name, font=("SF Pro", 10),
                             width=15, height=4, bg=container.color, relief='solid')
-                container_label.grid(row=r, column=c, padx=2, pady=2)
+                container_label.grid(row=7 - r, column=c, padx=2, pady=2)
                     
         # "Next" Button
         next_button_frame = tk.Frame(window, bg='gray30')
@@ -154,19 +154,37 @@ class CraneApp(tk.Tk):
 
     def next_move(self, ship, grid_frame, window):
         best_move = ship.find_best_move()
-        if best_move == (-1, -1):
-            print("No valid move found.")
+        
+        if ship.is_balanced():
+            if messagebox.showinfo("Balance Achieved", "Optimal Balance Achieved!"):
+                window.destroy()
             return
         
         start_row, start_col = best_move
+        print(start_row)
+        print(start_col)
         container = ship.ship[start_row][start_col]
         path = ship.find_shortest_path(start_row, start_col)
-        
+        print(container.row)
+        print(container.col)
         # Animate the container movement
-        self.animate_path(ship, path, container, grid_frame, window)
+        self.animate_path(path, container, grid_frame)
+        ship.modify_ship(path[-1][0], path[-1][1], container.weight)
+        ship.previous_best_move = path[-1]
+        ship.modify_ship(start_row, start_col, 0)
 
-    def animate_path(self, ship, path, container, grid_frame, window):
+    def animate_path(self, path, container, grid_frame):
         def move(step=0):
+            if step == 0:
+                print(container.row)
+                print(container.col)
+                # Clear the original position at the start of the animation
+                original_label = grid_frame.grid_slaves(row=container.row, column=container.col)[0]
+                original_label.config(
+                    text="UNUSED",
+                    bg="white"
+                )
+            
             if step > 0:
                 # Clear the previous position
                 prev_row, prev_col = path[step - 1]
@@ -186,18 +204,16 @@ class CraneApp(tk.Tk):
                 )
                 # Schedule the next step
                 grid_frame.after(500, move, step + 1)
-                # ship.modify_ship(path[-1][0], path[-1][1], ship.container_weight(row, col))
-                ship.previous_best_move = path[-1]
-                # ship.modify_ship(row, col, 0)
-
-            else:
-                best_move = ship.find_best_move()
-                if ship.previous_best_move == best_move:
-                    ship.optimal_balance = True
-                    if messagebox.showinfo("Balance Achieved", "Optimal Balance Achieved!"):
-                        window.destroy()
-                    return
                 
+            else:
+                # At the end of the path, set the container at its final destination
+                final_row, final_col = path[-1]
+                final_label = grid_frame.grid_slaves(row=final_row, column=final_col)[0]
+                final_label.config(
+                    text=container.name,
+                    bg=container.color
+                )
+   
         move()  # Start the animation
 
 
