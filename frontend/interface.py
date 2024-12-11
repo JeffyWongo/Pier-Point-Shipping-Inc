@@ -58,6 +58,9 @@ class CraneApp(tk.Tk):
         self.configure(bg="gray30")
         self.username = None
 
+        self.load_containers = []
+        self.unload_containers = []
+
         self.show_login()
 
     def show_login(self):
@@ -145,7 +148,7 @@ class CraneApp(tk.Tk):
         grid_frame.pack(pady=20)
 
         # display grid
-        self.display_containers(containers, name_colors, grid_frame)
+        self.display_container_select(containers, name_colors, grid_frame)
 
         # bottom frame for comments and buttons
         bottom_frame = tk.Frame(load_window, bg='gray30')
@@ -203,6 +206,48 @@ class CraneApp(tk.Tk):
 
     # takes containers, colors, and frame element
     # prints out ship layout
+    def display_container_select(self, containers, name_colors, grid_frame):
+        rows, cols = 8, 12
+        for r in range(rows):
+            for c in range(cols):
+                container = next((cont for cont in containers if cont.row == rows - r and cont.col == c + 1), None)
+                if container:
+                    info = container.get_info()
+                    bg_color = name_colors.get(container.name, 'white')
+
+                    container_label = tk.Label(grid_frame, text=info, font=("SF Pro", 10),
+                                               width=15, height=4, bg=bg_color, relief='solid')
+
+                    # Bind left-click and right-click events
+                    container_label.bind("<Button-1>", lambda event, container=container: self.on_left_click(event, container))
+                    container_label.bind("<Button-3>", lambda event, container=container: self.on_right_click(event, container))
+
+                    container_label.grid(row=r, column=c, padx=2, pady=2)
+                else:
+                    info = f"Pos: [{rows - r:02},{c + 1:02}]\nWeight: 00000\nName: UNUSED"
+                    bg_color = 'white'
+                    container_label = tk.Label(grid_frame, text=info, font=("SF Pro", 10),
+                                               width=15, height=4, bg=bg_color, relief='solid')
+                    container_label.grid(row=r, column=c, padx=2, pady=2)
+
+    def on_left_click(self, event, container):
+        self.load_containers.append(container)
+        self.update_grid(container, "blue")  # Highlight with blue color
+        print(self.load_containers)
+
+    def on_right_click(self, event, container):
+        self.unload_containers.append(container)
+        self.update_grid(container, "red")  # Highlight with red color
+        print(self.unload_containers)
+
+    def update_grid(self, container, color):
+        if hasattr(self, 'grid_frame') and self.grid_frame:  # Null check for grid_frame
+            for widget in self.grid_frame.winfo_children():
+                if widget.cget("text").startswith(f"Pos: [{container.row},{container.col}]"):
+                    widget.config(bg=color)
+
+    # takes containers, colors, and frame element
+    # prints out ship layout
     def display_containers(self, containers, name_colors, grid_frame):
         rows, cols = 8, 12
         for r in range(rows):
@@ -216,6 +261,7 @@ class CraneApp(tk.Tk):
                         bg_color = 'white'
                     else:
                         bg_color = name_colors.get(container.name, 'white')
+
                 else:
                     info = f"Pos: [{rows - r:02},{c + 1:02}]\nWeight: 00000\nName: UNUSED"
                     bg_color = 'white'
