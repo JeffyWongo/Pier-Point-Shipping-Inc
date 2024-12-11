@@ -144,26 +144,8 @@ class CraneApp(tk.Tk):
         grid_frame = tk.Frame(load_window, bg='gray30')
         grid_frame.pack(pady=20)
 
-        #display grid
-        rows, cols = 8, 12
-        for r in range(rows):
-            for c in range(cols):
-                container = next((cont for cont in containers if cont.row == rows - r and cont.col == c + 1), None)
-                if container:
-                    info = container.get_info()
-                    if container.name == "NAN":
-                        bg_color = 'gray20'
-                    elif container.name == "UNUSED":
-                        bg_color = 'white'
-                    else:
-                        bg_color = name_colors.get(container.name, 'white')
-                else:
-                    info = f"Pos: [{rows - r:02},{c + 1:02}]\nWeight: 00000\nName: UNUSED"
-                    bg_color = 'white'
-
-                container_label = tk.Label(grid_frame, text=info, font=("SF Pro", 10),
-                                        width=15, height=4, bg=bg_color, relief='solid')
-                container_label.grid(row=r, column=c, padx=2, pady=2)
+        # display grid
+        self.display_containers(containers, name_colors, grid_frame)
 
         # bottom frame for comments and buttons
         bottom_frame = tk.Frame(load_window, bg='gray30')
@@ -218,6 +200,29 @@ class CraneApp(tk.Tk):
 
         next_button = tk.Button(button_frame, text="Next", font=("SF Pro", 12), bg='white', width=10, height=2)
         next_button.pack()
+
+    # takes containers, colors, and frame element
+    # prints out ship layout
+    def display_containers(self, containers, name_colors, grid_frame):
+        rows, cols = 8, 12
+        for r in range(rows):
+            for c in range(cols):
+                container = next((cont for cont in containers if cont.row == rows - r and cont.col == c + 1), None)
+                if container:
+                    info = container.get_info()
+                    if container.name == "NAN":
+                        bg_color = 'gray20'
+                    elif container.name == "UNUSED":
+                        bg_color = 'white'
+                    else:
+                        bg_color = name_colors.get(container.name, 'white')
+                else:
+                    info = f"Pos: [{rows - r:02},{c + 1:02}]\nWeight: 00000\nName: UNUSED"
+                    bg_color = 'white'
+
+                container_label = tk.Label(grid_frame, text=info, font=("SF Pro", 10),
+                                        width=15, height=4, bg=bg_color, relief='solid')
+                container_label.grid(row=r, column=c, padx=2, pady=2)
 
     def balance(self):
         filename = filedialog.askopenfilename(title="Select Manifest", filetypes=[("Text Files", "*.txt")])
