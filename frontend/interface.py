@@ -63,6 +63,10 @@ class CraneApp(tk.Tk):
         self.unload_containers = []
         self.grid_frame = tk.Frame(self)
 
+        self.processed_moves = False
+        self.best_moves = []
+        self.current_step = 0
+
         self.show_login()
 
     def show_login(self):
@@ -203,8 +207,17 @@ class CraneApp(tk.Tk):
         button_frame = tk.Frame(bottom_frame, bg='gray30')
         button_frame.grid(row=0, column=2, padx=20)
 
-        next_button = tk.Button(button_frame, text="Next", font=("SF Pro", 12), bg='white', width=10, height=2)
+        next_button = tk.Button(button_frame, text="Next", font=("SF Pro", 12), bg='white', width=10, height=2,
+                                command=lambda: self.next_state())
         next_button.pack()
+
+    def next_state(self):
+        # call Load Unload
+        if not self.processed_moves:
+            self.processed_moves = True
+        # show next move
+        else:
+            self.current_step += 1
 
     # takes containers, colors, and frame element
     # prints out ship layout
