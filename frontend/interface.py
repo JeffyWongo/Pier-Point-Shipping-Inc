@@ -230,15 +230,31 @@ class CraneApp(tk.Tk):
                                                width=15, height=4, bg=bg_color, relief='solid')
                     container_label.grid(row=r, column=c, padx=2, pady=2)
 
+    # load
     def on_left_click(self, event, container):
+        if(container.name != "UNUSED"):
+            return
+
         self.load_containers.append(container)
         self.update_grid(container, "blue")  # Highlight with blue color
-        print(self.load_containers)
+        print("")
+        print("LOAD")
+        for item in self.load_containers:
+            print(f"{item.name}: {item.row}, {item.col}")
+        print("=============")
 
+    # unload
     def on_right_click(self, event, container):
+        if(container.name == "UNUSED" or container.name == "NAN"):
+            return
+        
         self.unload_containers.append(container)
         self.update_grid(container, "red")  # Highlight with red color
-        print(self.unload_containers)
+        print("")
+        print("UNLOAD")
+        for item in self.unload_containers:
+            print(f"{item.name}: {item.row}, {item.col}")
+        print("=============")
 
     def update_grid(self, container, color):
         if hasattr(self, 'grid_frame') and self.grid_frame:  # Null check for grid_frame
