@@ -3,6 +3,7 @@ from tkinter import filedialog
 import random
 from datetime import datetime
 from containerPrompt import ContainerPromptWindow
+import copy
 import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))  # Adds the root directory to sys.path
@@ -70,6 +71,7 @@ class CraneApp(tk.Tk):
         self.grid_frame = tk.Frame(self)
 
         self.processed_moves = False
+        self.original_containers = []
         self.containers = []
         self.best_moves = []
         self.current_step = 0
@@ -145,6 +147,8 @@ class CraneApp(tk.Tk):
             log_entry = f"{current_time}        Manifest {filename.split('/')[-1]} is opened, there are {container_count} containers on the ship\n"
             with open("logfile2024.txt", "a") as log_file:
                 log_file.write(log_entry)
+
+        self.original_containers = copy.deepcopy(self.containers)
 
         load_window = tk.Toplevel(self)
         load_window.title("Load Unload")
@@ -224,26 +228,22 @@ class CraneApp(tk.Tk):
             self.processed_moves = True
             # convert ship_layout for load operation
             ship_layout = [[loadContainer() for i in range(0,12)] for j in range(0,8)]
-            for item in self.containers:
+            for item in self.original_containers:
                 ship_layout[item.row-1][item.col-1] = loadContainer(item.name, item.weight)
 
             # convert load and unload lists
-            # unload_list = []
-            # load_list = []
-            # for item in self.unload_containers:
-            #     container = loadContainer(item.name, item.weight)
-            #     cord = (item.row-1, item.col-1)
-            #     unload_list.append((container, cord))
-            # for item in self.load_containers:
-            #     container = loadContainer(item.name, item.weight)
-            #     cord = (item.row-1, item.col-1)
-            #     load_list.append((container, cord))
+            unload_list = []
+            load_list = []
+            for item in self.unload_containers:
+                container = loadContainer(item.name, item.weight)
+                cord = (item.row-1, item.col-1)
+                unload_list.append((container, cord))
+            for item in self.load_containers:
+                container = loadContainer(item.name, item.weight)
+                cord = (item.row-1, item.col-1)
+                load_list.append((container, cord))
 
-            # print("load started")
-            # self.best_moves = Load.run(ship_layout, [], [])
-
-            # printing moves in console (for testing)
-            Load.print_layout(ship_layout)
+            self.best_moves = Load.run(ship_layout, unload_list, load_list)
 
             if self.best_moves is not None:
                 print("SOLUTION:")
