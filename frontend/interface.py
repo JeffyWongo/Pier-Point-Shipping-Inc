@@ -238,13 +238,15 @@ class CraneApp(tk.Tk):
     def on_left_click(self, event, container, name_colors):
         if(container.name != "UNUSED"):
             return
+        if container in self.unload_containers:
+            return
 
-        if(container in self.load_containers):
+        if container in self.load_containers:
             self.load_containers.remove(container)
             self.reset_container_color(container, name_colors)
         else:
             self.load_containers.append(container)
-            self.set_container_color(container, "blue")  # Highlight with blue color
+            self.set_container_color(container, "deep sky blue")  # Highlight with blue color
         print("")
         print("LOAD")
         for item in self.load_containers:
@@ -255,13 +257,15 @@ class CraneApp(tk.Tk):
     def on_right_click(self, event, container, name_colors):
         if(container.name == "UNUSED" or container.name == "NAN"):
             return
+        if container in self.load_containers:
+            return
         
-        if(container in self.unload_containers):
+        if container in self.unload_containers:
             self.unload_containers.remove(container)
             self.reset_container_color(container, name_colors)
         else:
             self.unload_containers.append(container)
-            self.set_container_color(container, "red")  # Highlight with red color
+            self.set_container_color(container, "red2")  # Highlight with red color
         print("")
         print("UNLOAD")
         for item in self.unload_containers:
