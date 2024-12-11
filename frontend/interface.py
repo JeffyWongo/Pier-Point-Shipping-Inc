@@ -60,6 +60,7 @@ class CraneApp(tk.Tk):
 
         self.load_containers = []
         self.unload_containers = []
+        self.grid_frame = tk.Frame(self)
 
         self.show_login()
 
@@ -144,11 +145,11 @@ class CraneApp(tk.Tk):
         title_label = tk.Label(load_window, text="Load Unload", font=("SF Pro", 30, "bold"), bg='gray30', fg='white')
         title_label.pack(pady=20)
 
-        grid_frame = tk.Frame(load_window, bg='gray30')
-        grid_frame.pack(pady=20)
+        self.grid_frame = tk.Frame(load_window, bg='gray30')
+        self.grid_frame.pack(pady=20)
 
         # display grid
-        self.display_container_select(containers, name_colors, grid_frame)
+        self.display_container_select(containers, name_colors, self.grid_frame)
 
         # bottom frame for comments and buttons
         bottom_frame = tk.Frame(load_window, bg='gray30')
@@ -222,8 +223,8 @@ class CraneApp(tk.Tk):
                                                width=15, height=4, bg=bg_color, relief='solid')
 
                     # Bind left-click and right-click events
-                    container_label.bind("<Button-1>", lambda event, container=container: self.on_left_click(event, container))
-                    container_label.bind("<Button-3>", lambda event, container=container: self.on_right_click(event, container))
+                    container_label.bind("<Button-1>", lambda event, container=container: self.on_left_click(event, container, name_colors))
+                    container_label.bind("<Button-3>", lambda event, container=container: self.on_right_click(event, container, name_colors))
 
                     container_label.grid(row=r, column=c, padx=2, pady=2)
                 else:
@@ -234,16 +235,16 @@ class CraneApp(tk.Tk):
                     container_label.grid(row=r, column=c, padx=2, pady=2)
 
     # load
-    def on_left_click(self, event, container):
+    def on_left_click(self, event, container, name_colors):
         if(container.name != "UNUSED"):
             return
 
         if(container in self.load_containers):
             self.load_containers.remove(container)
-            return
-
-        self.load_containers.append(container)
-        self.update_grid(container, "blue")  # Highlight with blue color
+            self.reset_container_color(container, name_colors)
+        else:
+            self.load_containers.append(container)
+            self.set_container_color(container, "blue")  # Highlight with blue color
         print("")
         print("LOAD")
         for item in self.load_containers:
@@ -251,27 +252,39 @@ class CraneApp(tk.Tk):
         print("=============")
 
     # unload
-    def on_right_click(self, event, container):
+    def on_right_click(self, event, container, name_colors):
         if(container.name == "UNUSED" or container.name == "NAN"):
             return
         
         if(container in self.unload_containers):
             self.unload_containers.remove(container)
-            return
-
-        self.unload_containers.append(container)
-        self.update_grid(container, "red")  # Highlight with red color
+            self.reset_container_color(container, name_colors)
+        else:
+            self.unload_containers.append(container)
+            self.set_container_color(container, "red")  # Highlight with red color
         print("")
         print("UNLOAD")
         for item in self.unload_containers:
             print(f"{item.name}: {item.row}, {item.col}")
         print("=============")
 
-    def update_grid(self, container, color):
-        if hasattr(self, 'grid_frame') and self.grid_frame:  # Null check for grid_frame
-            for widget in self.grid_frame.winfo_children():
-                if widget.cget("text").startswith(f"Pos: [{container.row},{container.col}]"):
-                    widget.config(bg=color)
+    def set_container_color(self, container, color):
+        for widget in self.grid_frame.winfo_children():
+            # Check if the widget is the label for the given container
+            widget_text = widget.cget('text').splitlines()[0]
+            expected_text = f"Pos: [{container.row:02},{container.col:02}]"
+            if widget_text == expected_text:
+                widget.config(bg=color)  # Update background color
+
+    def reset_container_color(self, container, name_colors):
+        # Get the container's name and lookup its original color from name_colors
+        container_name = container.name
+        if container_name in name_colors:
+            original_color = name_colors[container_name]
+        else:
+            original_color = 'white'  # Default color if not found in name_colors
+
+        self.set_container_color(container, original_color)
 
     # takes containers, colors, and frame element
     # prints out ship layout
