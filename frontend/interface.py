@@ -200,9 +200,16 @@ class CraneApp(tk.Tk):
         time_display_2 = tk.Label(time_frame_2, text="00:00", font=("SF Pro", 15, "bold"), bg='gray20', fg='white', relief='solid', width=10)
         time_display_2.grid(row=0, column=1, padx=5)
 
+        # instructions box
+        instruction_frame = tk.Frame(bottom_frame, bg='sky blue')
+        instruction_frame.grid(row=0, column=1, padx=20, pady=5)
+
+        instruction_label = tk.Label(instruction_frame, text="Bruh", font=("SF Pro", 15), bg='gray25', fg='white', relief='solid', padx=10, pady=5)
+        instruction_label.grid(row=0, column=0, padx=10, pady=5, sticky='w')
+
         # Comment Box and Submit Button
         comment_frame = tk.Frame(bottom_frame, bg='gray30')
-        comment_frame.grid(row=0, column=1, padx=20, pady=5)
+        comment_frame.grid(row=1, column=1, padx=20, pady=5)
 
         comment_label = tk.Label(comment_frame, text="Comments:", font=("SF Pro", 15), bg='gray30', fg='white')
         comment_label.grid(row=0, column=0, padx=10, pady=5, sticky='w')
@@ -219,10 +226,10 @@ class CraneApp(tk.Tk):
         button_frame.grid(row=0, column=2, padx=20)
 
         next_button = tk.Button(button_frame, text="Next", font=("SF Pro", 12), bg='white', width=10, height=2,
-                                command=lambda: self.next_state())
+                                command=lambda: self.next_state(name_colors, self.grid_frame))
         next_button.pack()
 
-    def next_state(self):
+    def next_state(self, name_colors, grid_frame):
         # call Load Unload
         if not self.processed_moves:
             self.processed_moves = True
@@ -245,6 +252,7 @@ class CraneApp(tk.Tk):
 
             self.best_moves = Load.run(ship_layout, unload_list, load_list)
 
+            # Output for testing
             if self.best_moves is not None:
                 print("SOLUTION:")
                 for item in self.best_moves:
@@ -256,7 +264,25 @@ class CraneApp(tk.Tk):
                 Load.print_layout(ship_layout)
         # show next move
         else:
-            self.current_step += 1
+            # print next step
+            if self.current_step < len(self.best_moves):
+                current_state = []
+                for row_index, row in enumerate(self.best_moves[self.current_step][0]):
+                    for col_index, item in enumerate(row):
+                        container = Container(row=row_index + 1, col=col_index + 1, weight=item.weight, name=item.name)
+                        
+                        current_state.append(container)
+                self.containers = current_state
+                self.display_containers(name_colors, grid_frame)
+                
+                self.current_step += 1
+
+                # TODO: "animations"
+                # TODO: color update for loaded containers
+            # we're done printing steps
+            else:
+                pass
+                # TODO: tell user through ui we done
 
     # takes containers, colors, and frame element
     # prints out ship layout
@@ -303,11 +329,6 @@ class CraneApp(tk.Tk):
             ContainerPromptWindow(self, container)
 
             self.load_containers.append(container)
-        # print("")
-        # print("LOAD")
-        # for item in self.load_containers:
-        #     print(f"{item.name}: {item.row}, {item.col}")
-        # print("=============")
 
     # unload
     def on_right_click(self, event, container, name_colors):
@@ -322,11 +343,6 @@ class CraneApp(tk.Tk):
         else:
             self.unload_containers.append(container)
             self.set_container_color(container, "red2")  # Highlight with red color
-        # print("")
-        # print("UNLOAD")
-        # for item in self.unload_containers:
-        #     print(f"{item.name}: {item.row}, {item.col}")
-        # print("=============")
 
     def set_container_color(self, container, color):
         widget = self.find_container_widget(container)
