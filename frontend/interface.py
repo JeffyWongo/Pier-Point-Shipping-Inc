@@ -3,6 +3,12 @@ from tkinter import filedialog
 import random
 from datetime import datetime
 from containerPrompt import ContainerPromptWindow
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))  # Adds the root directory to sys.path
+
+from backend.load import Load
+from backend.load import Container as loadContainer
 
 class LoginPage(tk.Frame):
     def __init__(self, master, on_login):
@@ -216,8 +222,38 @@ class CraneApp(tk.Tk):
         # call Load Unload
         if not self.processed_moves:
             self.processed_moves = True
+            # convert ship_layout for load operation
+            ship_layout = [[loadContainer() for i in range(0,12)] for j in range(0,8)]
             for item in self.containers:
-                print(f"{item.row}, {item.col}: {item.name} is {item.weight}")
+                ship_layout[item.row-1][item.col-1] = loadContainer(item.name, item.weight)
+
+            # convert load and unload lists
+            # unload_list = []
+            # load_list = []
+            # for item in self.unload_containers:
+            #     container = loadContainer(item.name, item.weight)
+            #     cord = (item.row-1, item.col-1)
+            #     unload_list.append((container, cord))
+            # for item in self.load_containers:
+            #     container = loadContainer(item.name, item.weight)
+            #     cord = (item.row-1, item.col-1)
+            #     load_list.append((container, cord))
+
+            # print("load started")
+            # self.best_moves = Load.run(ship_layout, [], [])
+
+            # printing moves in console (for testing)
+            Load.print_layout(ship_layout)
+
+            if self.best_moves is not None:
+                print("SOLUTION:")
+                for item in self.best_moves:
+                    Load.print_layout(item[0])
+                    print(f"{item[1]} -> {item[2]}")
+                    print("=============")
+            else:
+                print("No SOLUTION")
+                Load.print_layout(ship_layout)
         # show next move
         else:
             self.current_step += 1
