@@ -225,11 +225,11 @@ class CraneApp(tk.Tk):
         button_frame = tk.Frame(bottom_frame, bg='gray30')
         button_frame.grid(row=0, column=2, padx=20)
 
-        next_button = tk.Button(button_frame, text="Next", font=("SF Pro", 12), bg='white', width=10, height=2,
-                                command=lambda: self.next_state(name_colors, self.grid_frame))
+        next_button = tk.Button(button_frame, text="Start", font=("SF Pro", 12), bg='white', width=10, height=2,
+                                command=lambda: self.next_state(name_colors, self.grid_frame, instruction_label))
         next_button.pack()
 
-    def next_state(self, name_colors, grid_frame):
+    def next_state(self, name_colors, grid_frame, instruction_label):
         # call Load Unload
         if not self.processed_moves:
             self.processed_moves = True
@@ -253,21 +253,22 @@ class CraneApp(tk.Tk):
             self.best_moves = Load.run(ship_layout, unload_list, load_list)
 
             # Output for testing
-            if self.best_moves is not None:
-                print("SOLUTION:")
-                for item in self.best_moves:
-                    Load.print_layout(item[0])
-                    print(f"{item[1]} -> {item[2]}")
-                    print("=============")
-            else:
-                print("No SOLUTION")
-                Load.print_layout(ship_layout)
+            # if self.best_moves is not None:
+            #     print("SOLUTION:")
+            #     for item in self.best_moves:
+            #         Load.print_layout(item[0])
+            #         print(f"{item[1]} -> {item[2]}")
+            #         print("=============")
+            # else:
+            #     print("No SOLUTION")
+            #     Load.print_layout(ship_layout)
         # show next move
         else:
             # print next step
             if self.current_step < len(self.best_moves):
                 current_state = []
-                for row_index, row in enumerate(self.best_moves[self.current_step][0]):
+                info = self.best_moves[self.current_step]
+                for row_index, row in enumerate(info[0]):
                     for col_index, item in enumerate(row):
                         container = Container(row=row_index + 1, col=col_index + 1, weight=item.weight, name=item.name)
                         
@@ -275,14 +276,24 @@ class CraneApp(tk.Tk):
                 self.containers = current_state
                 self.display_containers(name_colors, grid_frame)
                 
-                self.current_step += 1
-
                 # TODO: "animations"
                 # TODO: color update for loaded containers
+                if info[1] is None:
+                    instruction_label.config(text="Operation Finished")
+                else:
+                    current_layout = info[0]
+                    # loading
+                    if(info[1]==(8,0)):
+                        instruction_label.config(text=f"Load container \"___\" to {tuple(x+1 for x in info[2])}")
+                    # unloading
+                    elif(info[2]==(8,0)):
+                        instruction_label.config(text=f"Unload container \"{current_layout[info[1][0]][info[1][1]].name}\" from {tuple(x+1 for x in info[1])}")
+                    else:
+                        instruction_label.config(text=f"Move container \"{current_layout[info[1][0]][info[1][1]].name}\"  {tuple(x+1 for x in info[1])} to  {tuple(x+1 for x in info[2])}")
+                self.current_step += 1
             # we're done printing steps
             else:
-                pass
-                # TODO: tell user through ui we done
+                instruction_label.config(text="Finished. Close Window")
 
     # takes containers, colors, and frame element
     # prints out ship layout
