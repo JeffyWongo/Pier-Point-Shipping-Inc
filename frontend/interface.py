@@ -216,10 +216,10 @@ class CraneApp(tk.Tk):
         button_frame.grid(row=0, column=2, padx=20)
 
         next_button = tk.Button(button_frame, text="Start", font=("SF Pro", 12), bg='white', width=10, height=2,
-                                command=lambda: self.next_state(name_colors, self.grid_frame, instruction_label, next_button, load_window, time_display))
+                                command=lambda: self.next_state(name_colors, self.grid_frame, instruction_label, next_button, load_window, time_display, filename))
         next_button.pack()
 
-    def next_state(self, name_colors, grid_frame, instruction_label, next_button, load_window, time_display):
+    def next_state(self, name_colors, grid_frame, instruction_label, next_button, load_window, time_display, filename):
         # call Load Unload
         if not self.processed_moves:
             self.processed_moves = True
@@ -293,7 +293,6 @@ class CraneApp(tk.Tk):
                         container_name = current_layout[info[1][0]][info[1][1]].name
                         instruction_label.config(text=f"Unload container \"{container_name}\" from {tuple(x+1 for x in info[1])}")
 
-                        current_time = datetime.now().strftime("%Y-%m-%d %H:%M")
                         self.submit_comment_load(f"\"{container_name}\" was offloaded")                
                     else:
                         instruction_label.config(text=f"Move container \"{current_layout[info[1][0]][info[1][1]].name}\" from {tuple(x+1 for x in info[1])} to {tuple(x+1 for x in info[2])}")
@@ -301,8 +300,8 @@ class CraneApp(tk.Tk):
                 self.current_step += 1
             # we're done printing steps
             else:
+                self.submit_comment_load(f"Finished a cycle. Manifest {filename.replace(".txt", "OUTBOUND.txt").split('/')[-1]} was written to the desktop, and a reminder pop-up to the operator to send the file was displayed.")
                 # TODO: outbound manifest
-                self.submit_comment_load(f"{current_time}        Finished a cycle. Manifest ___ was written to the desktop, and a reminder pop-up to the operator to send the file was displayed.")
                 load_window.destroy()
 
     # takes containers, colors, and frame element
