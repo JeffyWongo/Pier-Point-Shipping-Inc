@@ -66,15 +66,8 @@ class CraneApp(tk.Tk):
         self.configure(bg="gray30")
         self.username = None
 
-        self.load_containers = []
-        self.unload_containers = []
+        self.reset_load_unload()
         self.grid_frame = tk.Frame(self)
-
-        self.processed_moves = False
-        self.original_containers = []
-        self.containers = []
-        self.best_moves = []
-        self.current_step = 0
 
         self.show_login()
 
@@ -108,10 +101,21 @@ class CraneApp(tk.Tk):
         tk.Button(btn_frame, text="Balance", command=self.balance, font=("SF Pro", 15),
                   bg="white", width=25, height=3).grid(row=0, column=1, padx=10, pady=5)
 
+    def reset_load_unload(self):
+        self.processed_moves = False
+        self.original_containers = []
+        self.containers = []
+        self.best_moves = []
+        self.current_step = 0
+        self.load_containers = []
+        self.unload_containers = []
+
     def load_unload(self):
         filename = filedialog.askopenfilename(title="Select Manifest", filetypes=[("Text Files", "*.txt")])
         if not filename:
             return
+
+        self.reset_load_unload()
 
         # log the file opening
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M")
@@ -266,9 +270,9 @@ class CraneApp(tk.Tk):
                         
                         current_state.append(container)
                 self.containers = current_state
-                self.display_containers(name_colors, grid_frame)
                 
                 # TODO: "animations"
+                to_container = None
                 if info[1] is None:
                     instruction_label.config(text="Operation Finished")
                 else:
@@ -280,16 +284,41 @@ class CraneApp(tk.Tk):
                         for item in self.load_containers:
                             if (item.row-1, item.col-1) == info[2]:
                                 container_name = item.name
+                                break
                         instruction_label.config(text=f"Load container \"{container_name}\" to {tuple(x+1 for x in info[2])}")
+
+                        to_container = Container(item.row, item.col, 0, "UNUSED")
+                        # print(f"{container.row} {container.col} {container.name}")
+                        # print(self.find_container_widget(container))
                     # unloading
                     elif(info[2]==(8,0)):
                         instruction_label.config(text=f"Unload container \"{current_layout[info[1][0]][info[1][1]].name}\" from {tuple(x+1 for x in info[1])}")
                     else:
                         instruction_label.config(text=f"Move container \"{current_layout[info[1][0]][info[1][1]].name}\" from {tuple(x+1 for x in info[1])} to {tuple(x+1 for x in info[2])}")
+                
                 self.current_step += 1
+                self.display_containers(name_colors, grid_frame)
+
+                # to_container_widget = self.get_container_at(grid_frame, to_container.row, to_container.col)
+                to_container_widget = self.find_container_widget(to_container)
+                to_container_widget.config(bg="green")
             # we're done printing steps
             else:
                 load_window.destroy()
+
+    def get_container_at(self, grid_frame, row, col):
+        for widget in grid_frame.winfo_children():
+            grid_info = widget.grid_info()
+            if grid_info['row'] == row and grid_info['column'] == col:
+                return widget
+            
+            # widget_text = widget.cget('text').splitlines()[0]
+            # expected_text = f"Pos: [{row:02},{col:02}]"
+            # if widget_text == expected_text:
+            #     return widget
+
+        return None
+
 
     # takes containers, colors, and frame element
     # prints out ship layout
