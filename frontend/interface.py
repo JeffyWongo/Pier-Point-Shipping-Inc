@@ -308,6 +308,15 @@ class CraneApp(tk.Tk):
                         self.set_container_color(from_container, 'red')
                     else:
                         instruction_label.config(text=f"Move container \"{current_layout[info[1][0]][info[1][1]].name}\" from {tuple(x+1 for x in info[1])} (red) to {tuple(x+1 for x in info[2])} (green)")
+
+                        to_row, to_col = tuple(x+1 for x in info[2])
+                        to_container = next((cont for cont in self.containers if cont.row == to_row and cont.col == to_col), None)
+                        
+                        from_row, from_col = tuple(x+1 for x in info[1])
+                        from_container = next((cont for cont in self.containers if cont.row == from_row and cont.col == from_col), None)
+                        
+                        self.set_container_color(from_container, 'red')
+                        self.set_container_color(to_container, 'green')
                 
                 self.current_step += 1
             # we're done printing steps
@@ -340,9 +349,6 @@ class CraneApp(tk.Tk):
         popup.wait_window()
 
     def write_output_manifest(self, filename):
-        # Timestamp for logging
-        current_time = datetime.now().strftime("%Y-%m-%d %H:%M")
-        
         # Open the output file (for writing)
         with open(filename, 'w') as file:
             # Iterate over the containers and write each container's data
