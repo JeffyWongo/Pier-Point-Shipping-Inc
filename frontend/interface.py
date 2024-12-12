@@ -300,9 +300,31 @@ class CraneApp(tk.Tk):
                 self.current_step += 1
             # we're done printing steps
             else:
-                self.submit_comment_load(f"Finished a cycle. Manifest {filename.replace(".txt", "OUTBOUND.txt").split('/')[-1]} was written to the desktop, and a reminder pop-up to the operator to send the file was displayed.")
+                # self.submit_comment_load(f"Finished a cycle. Manifest {filename.replace(".txt", "OUTBOUND.txt").split('/')[-1]} was written to the desktop, and a reminder pop-up to the operator to send the file was displayed.")
                 # TODO: outbound manifest
+                self.write_output_manifest(filename.replace(".txt", "OUTBOUND.txt").split('/')[-1])
                 load_window.destroy()
+
+    def write_output_manifest(self, filename):
+        # Timestamp for logging
+        current_time = datetime.now().strftime("%Y-%m-%d %H:%M")
+        
+        # Open the output file (for writing)
+        with open(filename, 'w') as file:
+            # Iterate over the containers and write each container's data
+            for container in self.containers:
+                position = f"[{container.row:02},{container.col:02}]"
+                weight = f"{{{container.weight:05}}}"
+                name = container.name
+
+                # Write the formatted line to the file
+                file.write(f"{position}, {weight}, {name}\n")
+        
+        # Log the operation with a timestamp
+        log_entry = f"{current_time}        Finished a cycle. Manifest {filename.split('/')[-1]} has been written, there are {len(self.containers)} containers on the ship\n"
+        with open("logfile2024.txt", "a") as log_file:
+            log_file.write(log_entry)
+
 
     # takes containers, colors, and frame element
     # prints out ship layout
