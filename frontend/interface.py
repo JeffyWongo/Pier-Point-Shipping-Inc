@@ -4,6 +4,9 @@ from datetime import datetime
 from Container import Container
 from Ship import Ship
 
+current_year = datetime.now().year
+log_file_name = f"logfile{current_year}.txt"
+
 class LoginPage(tk.Frame):
     def __init__(self, master, on_login):
         super().__init__(master)
@@ -42,6 +45,8 @@ class CraneApp(tk.Tk):
         self.geometry("1920x1080")
         self.configure(bg="gray30")
         self.username = None
+        self.paths_to_animate = []
+        self.current_path_index = 0
 
         self.show_login()
 
@@ -54,7 +59,7 @@ class CraneApp(tk.Tk):
         # log sign-in
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M")
         log_entry = f"{current_time}        {username} has signed in\n"
-        with open("logfile2024.txt", "a") as log_file:
+        with open(log_file_name, "a") as log_file:
             log_file.write(log_entry)
         
         self.login_page.destroy()  # remove login page
@@ -80,7 +85,7 @@ class CraneApp(tk.Tk):
         if not filename:
             return
 
-        # Create Ship
+        # create Ship
         initial_ship = [[Container(weight=0, name="UNUSED", row=r, col=c, color='white') for c in range(12)] for r in range(8)]
         ship = Ship(initial_ship)
         
@@ -101,13 +106,13 @@ class CraneApp(tk.Tk):
         grid_frame.pack(pady=20)
         
         
-        # Display grid
+        # display grid
         rows, cols = 8, 12
         for r in range(rows):
             for c in range(cols):
                 container = ship.ship[7 - r][c]
                         
-                container_label = tk.Label(grid_frame, text=container.name, font=("SF Pro", 10),
+                container_label = tk.Label(grid_frame, text=container.show_info(), font=("SF Pro", 10),
                             width=15, height=4, bg=container.color, relief='solid')
                 container_label.grid(row=7 - r, column=c, padx=2, pady=2)
                     
@@ -138,7 +143,7 @@ class CraneApp(tk.Tk):
         if comment:
             current_time = datetime.now().strftime("%Y-%m-%d %H:%M")
             log_entry = f"{current_time}        {comment}\n"
-            with open("logfile2024.txt", "a") as log_file:
+            with open(log_file_name, "a") as log_file:
                 log_file.write(log_entry)
             
             comment_entry.delete("1.0", tk.END)
@@ -154,67 +159,90 @@ class CraneApp(tk.Tk):
 
     def next_move(self, ship, grid_frame, window):
         best_move = ship.find_best_move()
+        if not self.paths_to_animate:
+            if ship.previous_best_move == best_move:
+                if messagebox.showinfo("Balance Achieved", "Optimal Balance Achieved! The file 'ShipCase4OUTBOUND.txt' has been successfully saved to the desktop. Please review the details and send the file to the appropriate recipient."):
+                    window.destroy()
+                current_time = datetime.now().strftime("%Y-%m-%d %H:%M")
+                log_entry = f"{current_time}        Finished a Cycle. Manifest {ship.filename}OUTBOUND.txt was written to desktop, and a reminder pop-up to operator to send file was displayed\n"
+                with open(log_file_name, "a") as log_file:
+                    log_file.write(log_entry)
+                return
+            
+            start_row, start_col = best_move
+            obstacles = ship.find_obstacles(start_row, start_col) # obstacles contain the position of obstacles above target
+            
+            if obstacles: # find paths for all obstacles
+                for obstacle in obstacles:
+                    row, col = obstacle
+                    tempContainer = ship.ship[row][col]
+                    tempObPath = ship.find_ob_path(row, col)
+                    self.paths_to_animate.append((tempObPath, tempContainer))
+                    ship.swap_containers(tempObPath[-1][0], tempObPath[-1][1], row, col)
+            
+            # find path for original target container
+            container = ship.ship[start_row][start_col]
+            path = ship.find_shortest_path(start_row, start_col)
+            self.paths_to_animate.append((path, container))
+            ship.swap_containers(start_row, start_col, path[-1][0], path[-1][1])
+            ship.previous_best_move = path[-1]
         
-        if ship.is_balanced():
-            if messagebox.showinfo("Balance Achieved", "Optimal Balance Achieved!"):
-                window.destroy()
-            return
+        # animate paths for each obstacle
+        if self.current_path_index < len(self.paths_to_animate):
+            temp_ob_path, temp_container = self.paths_to_animate[self.current_path_index]
+            self.animate_path(ship, temp_ob_path, temp_container, grid_frame)
+            self.current_path_index += 1
+        else: # no more paths to animate
+            self.paths_to_animate = []
+            self.current_path_index = 0
+            if ship.is_balanced():
+                if messagebox.showinfo("Balance Achieved", "Optimal Balance Achieved! The file 'ShipCase4OUTBOUND.txt' has been successfully saved to the desktop. Please review the details and send the file to the appropriate recipient."):
+                    window.destroy()
+                current_time = datetime.now().strftime("%Y-%m-%d %H:%M")
+                log_entry = f"{current_time}        Finished a Cycle. Manifest {ship.filename}OUTBOUND.txt was written to desktop, and a reminder pop-up to operator to send file was displayed\n"
+                with open(log_file_name, "a") as log_file:
+                    log_file.write(log_entry)
+                return
         
-        start_row, start_col = best_move
-        print(start_row)
-        print(start_col)
-        container = ship.ship[start_row][start_col]
-        path = ship.find_shortest_path(start_row, start_col)
-        print(container.row)
-        print(container.col)
-        # Animate the container movement
-        self.animate_path(path, container, grid_frame)
-        ship.modify_ship(path[-1][0], path[-1][1], container.weight)
-        ship.previous_best_move = path[-1]
-        ship.modify_ship(start_row, start_col, 0)
 
-    def animate_path(self, path, container, grid_frame):
-        def move(step=0):
-            if step == 0:
-                print(container.row)
-                print(container.col)
-                # Clear the original position at the start of the animation
+    def animate_path(self, ship, path, container, grid_frame):
+        def move(step=0): 
+            if step == 0: # make 1st step empty
                 original_label = grid_frame.grid_slaves(row=container.row, column=container.col)[0]
                 original_label.config(
-                    text="UNUSED",
+                    text="UNUSED\n0",
                     bg="white"
                 )
-            
+
+            # clear previous position
             if step > 0:
-                # Clear the previous position
                 prev_row, prev_col = path[step - 1]
                 prev_label = grid_frame.grid_slaves(row=prev_row, column=prev_col)[0]
                 prev_label.config(
-                    text="UNUSED", 
+                    text="UNUSED\n0",
                     bg="white"
                 )
-            
+
+            # update the current position
             if step < len(path):
-                # Update the current position
                 row, col = path[step]
                 curr_label = grid_frame.grid_slaves(row=row, column=col)[0]
                 curr_label.config(
-                    text=container.name, 
-                    bg="lightgreen"
+                    text=ship.ship[path[-1][0]][path[-1][1]].show_info(),
+                    bg=ship.ship[path[-1][0]][path[-1][1]].color
                 )
-                # Schedule the next step
-                grid_frame.after(500, move, step + 1)
+                grid_frame.after(300, move, step + 1)
                 
-            else:
-                # At the end of the path, set the container at its final destination
+            else: # target container
                 final_row, final_col = path[-1]
+                final_container = ship.ship[final_row][final_col]
                 final_label = grid_frame.grid_slaves(row=final_row, column=final_col)[0]
                 final_label.config(
-                    text=container.name,
-                    bg=container.color
+                    text=final_container.show_info(),
+                    bg=final_container.color
                 )
-   
-        move()  # Start the animation
+
+        move()
 
 
 # Main

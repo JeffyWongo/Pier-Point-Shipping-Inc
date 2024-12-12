@@ -2,6 +2,10 @@ import heapq
 from math import inf
 from datetime import datetime
 from Container import Container
+import os
+
+current_year = datetime.now().year
+log_file_name = f"logfile{current_year}.txt"
 
 class Ship:
     def __init__(self, initial_ship):
@@ -13,6 +17,7 @@ class Ship:
         self.total_sum = 0
         self.optimal_balance = False
         self.previous_best_move = (-1, -1)
+        self.filename = ""
 
     def read_file(self, filename):
         # Log the file opening
@@ -44,24 +49,79 @@ class Ship:
 
             # Log the file reading
             log_entry = f"{current_time}        Manifest {filename.split('/')[-1]} is opened, there are {container_count} containers on the ship\n"
-            with open("logfile2024.txt", "a") as log_file:
+            with open(log_file_name, "a") as log_file:
                 log_file.write(log_entry)
+            filename_no_extension = os.path.splitext(os.path.basename(filename))[0]
+            self.filename = filename_no_extension
+
 
     def calculate_heuristic(self, row, col, target_row, target_col):
         return abs(row - target_row) + abs(col - target_col)
+
+
+    def find_obstacles(self, start_row, start_col):
+        # Check for obstacles above
+        obstacles = []
+        for r in range(start_row): #can prob change to while loop
+            container = self.ship[r][start_col]
+            if container.name != "UNUSED":  # Obstacle found
+                obstacles.append((r, start_col))
+                    
+        return obstacles
+    
+
+    def find_ob_path(self, row, col):
+        open_list = []
+        visited = set()
+        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+        target_col = col + 1 if col >= self.cols // 2 else col - 1
+        if not (0 <= target_col < self.cols):
+            target_col = 6 if col >= self.cols // 2 else 5
+
+        for target_row in range(self.rows - 1, -1, -1):
+            target_container = self.ship[target_row][target_col]
+            if  target_container.name == "UNUSED":  # Empty spot
+                print(f"Adjusting obstacle position [{row}][{col}] to [{target_row}][{target_col}]")
+                break
+        
+        # Initialize starting node
+        start_node = (0, row, col, [])
+        heapq.heappush(open_list, start_node)
+
+        while open_list:
+            g, tempRow, tempCol, path = heapq.heappop(open_list)
+
+            if (tempRow, tempCol) == (target_row, target_col):
+                return path
+
+            state = (tempRow, tempCol)
+            if state in visited:
+                continue
+            visited.add(state)
+
+            for dr, dc in directions:
+                new_row, new_col = tempRow + dr, tempCol + dc
+                if not (0 <= new_row < self.rows and 0 <= new_col < self.cols):
+                    continue
+                if (new_row, new_col) in visited:
+                    continue
+
+                container = self.ship[new_row][new_col]
+                if container.name != "UNUSED":  # Obstacle
+                    continue
+
+                new_g = g + 1
+                new_h = self.calculate_heuristic(new_row, new_col, target_row, target_col)
+                heapq.heappush(open_list, (new_g + new_h, new_row, new_col, path + [(new_row, new_col)]))
+
+        return []
+        
+
 
     def find_shortest_path(self, start_row, start_col):
         open_list = []
         visited = set()
         directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
-
-        # Check for obstacles above
-        for r in range(start_row): #can prob change to while loop
-            container = self.ship[r][start_col]
-            if container and container.weight > 0:  # Obstacle found
-                if not self.move_obstacle(r, start_col):
-                    print(f"Error: Unable to move obstacle at ({r}, {start_col}).")
-                    return []
 
         move_to_right = start_col < self.cols // 2
         target_col = self.cols // 2 if move_to_right else self.cols // 2 - 1
@@ -70,8 +130,8 @@ class Ship:
         while 0 <= target_col < self.cols:
             for r in range(self.rows - 1, -1, -1):
                 container = self.ship[r][target_col]
-                if container.weight == 0:  # Empty spot
-                    if r == self.rows - 1 or self.ship[r + 1][target_col].weight > 0:
+                if container.name == "UNUSED":  # Empty spot
+                    if r == self.rows - 1 or self.ship[r + 1][target_col].name != "UNUSED":
                         target_row = r
                         break
             if target_row != -1:
@@ -105,7 +165,7 @@ class Ship:
                     continue
 
                 container = self.ship[new_row][new_col]
-                if container and container.weight > 0:  # Obstacle
+                if container.name != "UNUSED":  # Obstacle
                     continue
 
                 new_g = g + 1
@@ -145,23 +205,6 @@ class Ship:
         tolerance = total_weight * 0.1  # 10%
         return abs(self.left_sum - self.right_sum) <= tolerance
 
-    def move_obstacle(self, row, col):
-        target_col = col + 1 if col >= self.cols // 2 else col - 1
-        if not (0 <= target_col < self.cols):
-            target_col = 6 if col >= self.cols // 2 else 5
-
-        for target_row in range(self.rows - 1, -1, -1):
-            target_container = self.ship[target_row][target_col]
-
-            if target_container.name == "NAN" or target_container.name == "UNUSED":  # Empty spot or NaN container
-                print(f"Adjusting obstacle position [{row}][{col}] to [{target_row}][{target_col}]")
-                # Move the container to the new position
-                self.ship[target_row][target_col] = self.ship[row][col]
-                # Set the original position to an empty container (None)
-                self.ship[row][col].name = "UNUSED"
-                self.ship[row][col].weight = 0
-                return True
-        return False
 
     def find_best_move(self):
         self.calculate_sums()
@@ -204,47 +247,16 @@ class Ship:
 
         return best_move
     
-    def modify_ship(self, row, col, weight):
+    def modify_ship(self, row, col, weight, name, color):
         container = self.ship[row][col]
         container.weight = weight
+        container.name = name
+        container.color = color
 
-    # def print_best_move(self):
-    #     best_move = self.find_best_move()
-    #     if self.previous_best_move == best_move:
-    #         print("Optimal balance achieved!")
-    #         self.optimal_balance = True
-    #         return
+    def swap_containers(self, row1, col1, row2, col2):
+        container1 = self.ship[row1][col1]
+        container2 = self.ship[row2][col2]
 
-    #     row, col = best_move
-    #     path = self.find_shortest_path(row, col)
-    #     if path:
-    #         print(f"Target position: [{row}][{col}] = {self.container_weight(row, col)}")
-    #         print("Successful! Here's the route:")
-    #         for i, step in enumerate(path, 1):
-    #             print(f"Step {i}: {step}")
-    #         self.modify_ship(path[-1][0], path[-1][1], self.container_weight(row, col))
-    #         self.previous_best_move = path[-1]
-    #         self.modify_ship(row, col, 0)
-    #     else:
-    #         print("Failed, can't find a route.")
-
-# if __name__ == "__main__":
-#     balance = Balance(file)
-#     balance.modify_ship(7, 0, -1)
-#     balance.modify_ship(7, 1, 96)
-#     balance.modify_ship(7, 2, 8)
-#     balance.modify_ship(7, 3, 4)
-#     balance.modify_ship(7, 4, 4)
-#     balance.modify_ship(7, 5, 1)
-#     balance.modify_ship(7, 11, -1)
-    
-#     balance.print_ship()
-#     while not balance.is_balanced():
-#         balance.calculate_sums()
-#         balance.print_ship_weight()
-#         balance.print_best_move()
-#         balance.print_ship()
-#         balance.calculate_sums()
-#         balance.print_ship_weight()
-
-#     print("Congrats! It's balanced now.")
+        container1.weight, container2.weight = container2.weight, container1.weight
+        container1.name, container2.name = container2.name, container1.name
+        container1.color, container2.color = container2.color, container1.color
