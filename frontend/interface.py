@@ -204,7 +204,7 @@ class CraneApp(tk.Tk):
         comment_label = tk.Label(comment_frame, text="Comments:", font=("SF Pro", 15), bg='gray30', fg='white')
         comment_label.grid(row=0, column=0, padx=10, pady=5, sticky='w')
 
-        comment_entry = tk.Text(comment_frame, font=("SF Pro", 12), width=50, height=5)
+        comment_entry = tk.Text(comment_frame, font=("SF Pro", 12), width=50, height=3)
         comment_entry.grid(row=1, column=0, padx=10, pady=5)
 
         submit_button = tk.Button(comment_frame, text="Submit", font=("SF Pro", 12), bg='white',
