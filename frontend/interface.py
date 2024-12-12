@@ -270,9 +270,9 @@ class CraneApp(tk.Tk):
                         
                         current_state.append(container)
                 self.containers = current_state
+                self.display_containers(name_colors, grid_frame)
                 
                 # TODO: "animations"
-                to_container = None
                 if info[1] is None:
                     instruction_label.config(text="Operation Finished")
                 else:
@@ -287,38 +287,19 @@ class CraneApp(tk.Tk):
                                 break
                         instruction_label.config(text=f"Load container \"{container_name}\" to {tuple(x+1 for x in info[2])}")
 
-                        to_container = Container(item.row, item.col, 0, "UNUSED")
-                        # print(f"{container.row} {container.col} {container.name}")
-                        # print(self.find_container_widget(container))
+                        self.submit_comment_load(f"\"{container_name}\" was onloaded")
                     # unloading
                     elif(info[2]==(8,0)):
-                        instruction_label.config(text=f"Unload container \"{current_layout[info[1][0]][info[1][1]].name}\" from {tuple(x+1 for x in info[1])}")
+                        container_name = current_layout[info[1][0]][info[1][1]].name
+                        instruction_label.config(text=f"Unload container \"{container_name}\" from {tuple(x+1 for x in info[1])}")
+                        self.submit_comment_load(f"\"{container_name}\" was offloaded")
                     else:
                         instruction_label.config(text=f"Move container \"{current_layout[info[1][0]][info[1][1]].name}\" from {tuple(x+1 for x in info[1])} to {tuple(x+1 for x in info[2])}")
                 
                 self.current_step += 1
-                self.display_containers(name_colors, grid_frame)
-
-                # to_container_widget = self.get_container_at(grid_frame, to_container.row, to_container.col)
-                to_container_widget = self.find_container_widget(to_container)
-                to_container_widget.config(bg="green")
             # we're done printing steps
             else:
                 load_window.destroy()
-
-    def get_container_at(self, grid_frame, row, col):
-        for widget in grid_frame.winfo_children():
-            grid_info = widget.grid_info()
-            if grid_info['row'] == row and grid_info['column'] == col:
-                return widget
-            
-            # widget_text = widget.cget('text').splitlines()[0]
-            # expected_text = f"Pos: [{row:02},{col:02}]"
-            # if widget_text == expected_text:
-            #     return widget
-
-        return None
-
 
     # takes containers, colors, and frame element
     # prints out ship layout
@@ -529,6 +510,13 @@ class CraneApp(tk.Tk):
         submit_button = tk.Button(comment_frame, text="Submit", font=("SF Pro", 12), bg='white',
                                 command=lambda: self.submit_comment(comment_entry))
         submit_button.grid(row=2, column=0, pady=10)
+
+    def submit_comment_load(self, comment):
+        if comment:
+            current_time = datetime.now().strftime("%Y-%m-%d %H:%M")
+            log_entry = f"{current_time}        {comment}\n"
+            with open("logfile2024.txt", "a") as log_file:
+                log_file.write(log_entry)
 
     def submit_comment(self, comment_entry):
         comment = comment_entry.get("1.0", tk.END).strip()
