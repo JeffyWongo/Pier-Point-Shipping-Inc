@@ -2,6 +2,10 @@ import heapq
 from math import inf
 from datetime import datetime
 from Container import Container
+import os
+
+current_year = datetime.now().year
+log_file_name = f"logfile{current_year}.txt"
 
 class Ship:
     def __init__(self, initial_ship):
@@ -13,6 +17,7 @@ class Ship:
         self.total_sum = 0
         self.optimal_balance = False
         self.previous_best_move = (-1, -1)
+        self.filename = ""
 
     def read_file(self, filename):
         # Log the file opening
@@ -44,8 +49,11 @@ class Ship:
 
             # Log the file reading
             log_entry = f"{current_time}        Manifest {filename.split('/')[-1]} is opened, there are {container_count} containers on the ship\n"
-            with open("logfile2024.txt", "a") as log_file:
+            with open(log_file_name, "a") as log_file:
                 log_file.write(log_entry)
+            filename_no_extension = os.path.splitext(os.path.basename(filename))[0]
+            self.filename = filename_no_extension
+
 
     def calculate_heuristic(self, row, col, target_row, target_col):
         return abs(row - target_row) + abs(col - target_col)

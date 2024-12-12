@@ -6,9 +6,5 @@ class Container:
         self.name = name
         self.color = color
         
-    def show_info(self): # for debugging
-        print(f"Container Info:")
-        print(f"  Position: ({self.row}, {self.col})")
-        print(f"  Name: {self.name}")
-        print(f"  Weight: {self.weight}")
-        print(f"  Color: {self.color}")
+    def show_info(self):
+        return f"{self.name}\n{self.weight}"
