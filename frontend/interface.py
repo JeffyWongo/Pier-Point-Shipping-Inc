@@ -42,6 +42,8 @@ class CraneApp(tk.Tk):
         self.geometry("1920x1080")
         self.configure(bg="gray30")
         self.username = None
+        self.paths_to_animate = []
+        self.current_path_index = 0
 
         self.show_login()
 
@@ -154,66 +156,79 @@ class CraneApp(tk.Tk):
 
     def next_move(self, ship, grid_frame, window):
         best_move = ship.find_best_move()
+        if not self.paths_to_animate:
+            if ship.previous_best_move == best_move:
+                if messagebox.showinfo("Balance Achieved", "Optimal Balance Achieved!"):
+                    window.destroy()
+                return
+            
+            start_row, start_col = best_move
+            obstacles = ship.find_obstacles(start_row, start_col) # obstacles contain the position of obstacles above target
+            # print(obstacles) # 6, 1
+            
+            if obstacles:
+                for obstacle in obstacles:
+                    row, col = obstacle
+                    tempContainer = ship.ship[row][col]
+                    tempObPath = ship.find_ob_path(row, col)
+                    # print(tempObPath) 6, 0
+                    self.paths_to_animate.append((tempObPath, tempContainer))
+                    ship.swap_containers(tempObPath[-1][0], tempObPath[-1][1], row, col)
+            
+            container = ship.ship[start_row][start_col]
+            path = ship.find_shortest_path(start_row, start_col)
+            self.paths_to_animate.append((path, container))
+            ship.swap_containers(start_row, start_col, path[-1][0], path[-1][1])
         
-        if ship.is_balanced():
-            if messagebox.showinfo("Balance Achieved", "Optimal Balance Achieved!"):
-                window.destroy()
-            return
+        if self.current_path_index < len(self.paths_to_animate):
+            temp_ob_path, temp_container = self.paths_to_animate[self.current_path_index]
+            self.animate_path(ship, temp_ob_path, temp_container, grid_frame)
+            self.current_path_index += 1
+        else:
+            self.paths_to_animate = []
+            self.current_path_index = 0
+            if ship.is_balanced():
+                if messagebox.showinfo("Balance Achieved", "Optimal Balance Achieved!"):
+                    window.destroy()
+                return
         
-        start_row, start_col = best_move
-        print(start_row)
-        print(start_col)
-        container = ship.ship[start_row][start_col]
-        path = ship.find_shortest_path(start_row, start_col)
-        print(container.row)
-        print(container.col)
-        # Animate the container movement
-        self.animate_path(path, container, grid_frame)
-        ship.modify_ship(path[-1][0], path[-1][1], container.weight)
-        ship.previous_best_move = path[-1]
-        ship.modify_ship(start_row, start_col, 0)
 
-    def animate_path(self, path, container, grid_frame):
+    def animate_path(self, ship, path, container, grid_frame):
         def move(step=0):
             if step == 0:
-                print(container.row)
-                print(container.col)
-                # Clear the original position at the start of the animation
                 original_label = grid_frame.grid_slaves(row=container.row, column=container.col)[0]
                 original_label.config(
                     text="UNUSED",
                     bg="white"
                 )
-            
+
+            # Clear the previous position if this is not the first step
             if step > 0:
-                # Clear the previous position
                 prev_row, prev_col = path[step - 1]
                 prev_label = grid_frame.grid_slaves(row=prev_row, column=prev_col)[0]
                 prev_label.config(
-                    text="UNUSED", 
+                    text="UNUSED",
                     bg="white"
                 )
-            
+
+            # Update the current position
             if step < len(path):
-                # Update the current position
                 row, col = path[step]
                 curr_label = grid_frame.grid_slaves(row=row, column=col)[0]
                 curr_label.config(
-                    text=container.name, 
-                    bg="lightgreen"
+                    text=ship.ship[path[-1][0]][path[-1][1]].name,
+                    bg=ship.ship[path[-1][0]][path[-1][1]].color
                 )
-                # Schedule the next step
-                grid_frame.after(500, move, step + 1)
-                
+                grid_frame.after(300, move, step + 1)
             else:
-                # At the end of the path, set the container at its final destination
                 final_row, final_col = path[-1]
+                final_container = ship.ship[final_row][final_col]
                 final_label = grid_frame.grid_slaves(row=final_row, column=final_col)[0]
                 final_label.config(
-                    text=container.name,
-                    bg=container.color
+                    text=final_container.name,
+                    bg=final_container.color
                 )
-   
+
         move()  # Start the animation
 
 

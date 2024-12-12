@@ -42,3 +42,9 @@
 2024-12-10 22:26        Manifest ShipCase1.txt is opened, there are 2 containers on the ship
 2024-12-10 22:27        sf has signed in
 2024-12-10 22:27        Manifest ShipCase2.txt is opened, there are 4 containers on the ship
+2024-12-10 22:30        asdf has signed in
+2024-12-10 22:30        Manifest ShipCase3.txt is opened, there are 6 containers on the ship
+2024-12-10 22:31        Manifest ShipCase4.txt is opened, there are 7 containers on the ship
+2024-12-10 22:31        Manifest ShipCase5.txt is opened, there are 5 containers on the ship
+2024-12-10 22:32        Manifest SilverQueen.txt is opened, there are 4 containers on the ship
+2024-12-10 22:32        Manifest ShipCase2.txt is opened, there are 4 containers on the ship
