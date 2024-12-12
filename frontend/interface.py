@@ -403,6 +403,12 @@ class CraneApp(tk.Tk):
                     elif container.name == "UNUSED":
                         bg_color = 'white'
                     else:
+                        name = container.name
+                        if name not in name_colors:
+                            name_colors[name] = "#{:02x}{:02x}{:02x}".format(
+                                random.randint(150, 255),  # random light red
+                                random.randint(150, 255),  # random light green
+                                random.randint(150, 255))  # random light blue
                         bg_color = name_colors.get(container.name, 'white')
 
                 else:
