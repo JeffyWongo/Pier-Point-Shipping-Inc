@@ -292,6 +292,9 @@ class CraneApp(tk.Tk):
                         self.submit_comment_load(f"\"{container_name}\" was onloaded")
 
                         to_row, to_col = tuple(x+1 for x in info[2])
+                        to_container = next((cont for cont in self.containers if cont.row == to_row and cont.col == to_col), None)
+
+                        self.set_container_color(to_container, 'green')
                     # unloading
                     elif(info[2]==(8,0)):
                         container_name = current_layout[info[1][0]][info[1][1]].name
