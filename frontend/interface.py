@@ -277,6 +277,8 @@ class CraneApp(tk.Tk):
                     instruction_label.config(text="Operation Finished")
                 else:
                     current_layout = info[0]
+                    # TODO: highlight the destination grid green
+                    # TODO: highlight the grid to move yellow
                     # loading
                     if(info[1]==(8,0)):
                         # finds container in load list
@@ -285,17 +287,24 @@ class CraneApp(tk.Tk):
                             if (item.row-1, item.col-1) == info[2]:
                                 container_name = item.name
                                 break
-                        instruction_label.config(text=f"Load container \"{container_name}\" to {tuple(x+1 for x in info[2])}")
+                        instruction_label.config(text=f"Load container \"{container_name}\" to {tuple(x+1 for x in info[2])} (green)")
 
                         self.submit_comment_load(f"\"{container_name}\" was onloaded")
+
+                        to_row, to_col = tuple(x+1 for x in info[2])
                     # unloading
                     elif(info[2]==(8,0)):
                         container_name = current_layout[info[1][0]][info[1][1]].name
-                        instruction_label.config(text=f"Unload container \"{container_name}\" from {tuple(x+1 for x in info[1])}")
+                        instruction_label.config(text=f"Unload container \"{container_name}\" from {tuple(x+1 for x in info[1])} (red)")
 
-                        self.submit_comment_load(f"\"{container_name}\" was offloaded")                
+                        self.submit_comment_load(f"\"{container_name}\" was offloaded")
+
+                        from_row, from_col = tuple(x+1 for x in info[1])
+                        from_container = next((cont for cont in self.containers if cont.row == from_row and cont.col == from_col), None)
+
+                        self.set_container_color(from_container, 'red')
                     else:
-                        instruction_label.config(text=f"Move container \"{current_layout[info[1][0]][info[1][1]].name}\" from {tuple(x+1 for x in info[1])} to {tuple(x+1 for x in info[2])}")
+                        instruction_label.config(text=f"Move container \"{current_layout[info[1][0]][info[1][1]].name}\" from {tuple(x+1 for x in info[1])} (red) to {tuple(x+1 for x in info[2])} (green)")
                 
                 self.current_step += 1
             # we're done printing steps
@@ -411,7 +420,19 @@ class CraneApp(tk.Tk):
 
     def set_container_color(self, container, color):
         widget = self.find_container_widget(container)
-        widget.config(bg=color)
+        widget.grid_forget()
+        # Create a new label with updated color and info
+        new_label = tk.Label(self.grid_frame, 
+                             text=container.get_info(), 
+                             font=("SF Pro", 10),
+                             width=15, height=4, 
+                             bg=color, relief='solid')
+
+        # Re-add the new label to the same position
+        new_label.grid(row=8 - container.row, column=container.col - 1, padx=2, pady=2)
+        
+        # Refresh the layout
+        self.grid_frame.update_idletasks()
 
     def set_container_empty(self, container):
         new_text = f"Pos: [{container.row:02},{container.col:02}]\nWeight: 00000\nName: UNUSED"
