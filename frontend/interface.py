@@ -284,12 +284,17 @@ class CraneApp(tk.Tk):
                     current_layout = info[0]
                     # loading
                     if(info[1]==(8,0)):
-                        instruction_label.config(text=f"Load container \"___\" to {tuple(x+1 for x in info[2])}")
+                        # finds container in load list
+                        container_name = ""
+                        for item in self.load_containers:
+                            if (item.row-1, item.col-1) == info[2]:
+                                container_name = item.name
+                        instruction_label.config(text=f"Load container \"{container_name}\" to {tuple(x+1 for x in info[2])}")
                     # unloading
                     elif(info[2]==(8,0)):
                         instruction_label.config(text=f"Unload container \"{current_layout[info[1][0]][info[1][1]].name}\" from {tuple(x+1 for x in info[1])}")
                     else:
-                        instruction_label.config(text=f"Move container \"{current_layout[info[1][0]][info[1][1]].name}\"  {tuple(x+1 for x in info[1])} to  {tuple(x+1 for x in info[2])}")
+                        instruction_label.config(text=f"Move container \"{current_layout[info[1][0]][info[1][1]].name}\" from {tuple(x+1 for x in info[1])} to {tuple(x+1 for x in info[2])}")
                 self.current_step += 1
             # we're done printing steps
             else:

@@ -32,6 +32,10 @@ class ContainerPromptWindow(tk.Toplevel):
 
         self.grab_set()  # Make the window (blocks interaction with other windows)
 
+        # qol changes
+        self.bind('<Return>', lambda event: self.submit_details(container))
+        self.name_entry.focus_set()
+
     def submit_details(self, container):
         container_name = self.name_entry.get()
         container_weight = self.weight_entry.get()
