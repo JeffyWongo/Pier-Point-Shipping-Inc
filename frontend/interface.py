@@ -294,7 +294,7 @@ class CraneApp(tk.Tk):
                         to_row, to_col = tuple(x+1 for x in info[2])
                         to_container = next((cont for cont in self.containers if cont.row == to_row and cont.col == to_col), None)
 
-                        self.set_container_color(to_container, 'green')
+                        self.set_container_color(to_container, 'green', name_colors)
                     # unloading
                     elif(info[2]==(8,0)):
                         container_name = current_layout[info[1][0]][info[1][1]].name
@@ -305,7 +305,7 @@ class CraneApp(tk.Tk):
                         from_row, from_col = tuple(x+1 for x in info[1])
                         from_container = next((cont for cont in self.containers if cont.row == from_row and cont.col == from_col), None)
 
-                        self.set_container_color(from_container, 'red')
+                        self.set_container_color(from_container, 'red', name_colors)
                     else:
                         instruction_label.config(text=f"Move container \"{current_layout[info[1][0]][info[1][1]].name}\" from {tuple(x+1 for x in info[1])} (red) to {tuple(x+1 for x in info[2])} (green)")
 
@@ -315,8 +315,8 @@ class CraneApp(tk.Tk):
                         from_row, from_col = tuple(x+1 for x in info[1])
                         from_container = next((cont for cont in self.containers if cont.row == from_row and cont.col == from_col), None)
                         
-                        self.set_container_color(from_container, 'red')
-                        self.set_container_color(to_container, 'green')
+                        self.set_container_color(from_container, 'red', name_colors)
+                        self.set_container_color(to_container, 'green', name_colors)
                 
                 self.current_step += 1
             # we're done printing steps
@@ -410,7 +410,7 @@ class CraneApp(tk.Tk):
             self.wait_window(prompt_window)
 
             if prompt_window.closedAutomatically:
-                self.set_container_color(container, "deep sky blue")  # Highlight with blue color
+                self.set_container_color(container, "deep sky blue", name_colors)  # Highlight with blue color
                 self.load_containers.append(container)
 
     # unload
@@ -425,9 +425,9 @@ class CraneApp(tk.Tk):
             self.reset_container_color(container, name_colors)
         else:
             self.unload_containers.append(container)
-            self.set_container_color(container, "red2")  # Highlight with red color
+            self.set_container_color(container, "red2", name_colors)  # Highlight with red color
 
-    def set_container_color(self, container, color):
+    def set_container_color(self, container, color, name_colors):
         widget = self.find_container_widget(container)
         widget.grid_forget()
         # Create a new label with updated color and info
@@ -439,6 +439,9 @@ class CraneApp(tk.Tk):
 
         # Re-add the new label to the same position
         new_label.grid(row=8 - container.row, column=container.col - 1, padx=2, pady=2)
+
+        new_label.bind("<Button-1>", lambda event, container=container: self.on_left_click(event, container, name_colors))
+        new_label.bind("<Button-3>", lambda event, container=container: self.on_right_click(event, container, name_colors))
         
         # Refresh the layout
         self.grid_frame.update_idletasks()
@@ -458,7 +461,7 @@ class CraneApp(tk.Tk):
         else:
             original_color = 'white'  # Default color if not found in name_colors
 
-        self.set_container_color(container, original_color)
+        self.set_container_color(container, original_color, name_colors)
 
     def find_container_widget(self, container):
         for widget in self.grid_frame.winfo_children():
