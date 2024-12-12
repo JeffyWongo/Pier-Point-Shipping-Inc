@@ -301,8 +301,31 @@ class CraneApp(tk.Tk):
             # we're done printing steps
             else:
                 # outbound manifest
-                self.write_output_manifest(filename.replace(".txt", "OUTBOUND.txt").split('/')[-1])
+                output_filename = filename.replace(".txt", "OUTBOUND.txt").split('/')[-1]
+                self.write_output_manifest(output_filename)
+                self.reminder_popup(output_filename)
                 load_window.destroy()
+
+    def reminder_popup(self, filename):
+        popup = tk.Toplevel(self)
+        popup.title("Email Instructions")
+
+        # Set the size of the popup window
+        popup.geometry("300x150")
+
+        # Label instructing the user to email the manifest
+        label = tk.Label(popup, text=f"Please email the outbound manifest file:\n{filename}\nto the docked ship.")
+        label.pack(pady=20)
+
+        # Button to close the popup
+        close_button = tk.Button(popup, text="Close", command=popup.destroy)
+        close_button.pack()
+
+        # Make the popup modal (user cannot interact with the main window until the popup is closed)
+        popup.grab_set()
+
+        # Wait for the popup to close before continuing
+        popup.wait_window()
 
     def write_output_manifest(self, filename):
         # Timestamp for logging
@@ -320,9 +343,8 @@ class CraneApp(tk.Tk):
                 file.write(f"{position}, {weight}, {name}\n")
         
         # Log the operation with a timestamp
-        log_entry = f"{current_time}        Finished a cycle. Manifest {filename.split('/')[-1]} has been written, there are {len(self.containers)} containers on the ship\n"
-        with open("logfile2024.txt", "a") as log_file:
-            log_file.write(log_entry)
+        log_entry = f"Finished a cycle. Manifest \"{filename.split('/')[-1]}\" has been written, and a reminder pop-up to the operator to send the file was displayed."
+        self.submit_comment_load(log_entry)
 
 
     # takes containers, colors, and frame element
