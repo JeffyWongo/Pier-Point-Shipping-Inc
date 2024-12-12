@@ -201,10 +201,10 @@ class CraneApp(tk.Tk):
         time_display_2.grid(row=0, column=1, padx=5)
 
         # instructions box
-        instruction_frame = tk.Frame(bottom_frame, bg='sky blue')
+        instruction_frame = tk.Frame(bottom_frame, bg='gray30')
         instruction_frame.grid(row=0, column=1, padx=20, pady=5)
 
-        instruction_label = tk.Label(instruction_frame, text="Bruh", font=("SF Pro", 15), bg='gray25', fg='white', relief='solid', padx=10, pady=5)
+        instruction_label = tk.Label(instruction_frame, text="Left click spot to load. Right click container to unload", font=("SF Pro", 15), bg='gray25', fg='white', relief='solid', padx=10, pady=5)
         instruction_label.grid(row=0, column=0, padx=10, pady=5, sticky='w')
 
         # Comment Box and Submit Button
@@ -226,10 +226,10 @@ class CraneApp(tk.Tk):
         button_frame.grid(row=0, column=2, padx=20)
 
         next_button = tk.Button(button_frame, text="Start", font=("SF Pro", 12), bg='white', width=10, height=2,
-                                command=lambda: self.next_state(name_colors, self.grid_frame, instruction_label))
+                                command=lambda: self.next_state(name_colors, self.grid_frame, instruction_label, next_button, load_window))
         next_button.pack()
 
-    def next_state(self, name_colors, grid_frame, instruction_label):
+    def next_state(self, name_colors, grid_frame, instruction_label, next_button, load_window):
         # call Load Unload
         if not self.processed_moves:
             self.processed_moves = True
@@ -252,20 +252,16 @@ class CraneApp(tk.Tk):
 
             self.best_moves = Load.run(ship_layout, unload_list, load_list)
 
-            # Output for testing
-            # if self.best_moves is not None:
-            #     print("SOLUTION:")
-            #     for item in self.best_moves:
-            #         Load.print_layout(item[0])
-            #         print(f"{item[1]} -> {item[2]}")
-            #         print("=============")
-            # else:
-            #     print("No SOLUTION")
-            #     Load.print_layout(ship_layout)
+            next_button.config(text="Next")
+
+            if self.best_moves is not None:
+                instruction_label.config(text="Optimal Moves Found")
+            else:
+                instruction_label.config(text="Solution Not Found")
         # show next move
         else:
             # print next step
-            if self.current_step < len(self.best_moves):
+            if self.best_moves is not None and self.current_step < len(self.best_moves):
                 current_state = []
                 info = self.best_moves[self.current_step]
                 for row_index, row in enumerate(info[0]):
@@ -277,7 +273,6 @@ class CraneApp(tk.Tk):
                 self.display_containers(name_colors, grid_frame)
                 
                 # TODO: "animations"
-                # TODO: color update for loaded containers
                 if info[1] is None:
                     instruction_label.config(text="Operation Finished")
                 else:
@@ -298,7 +293,7 @@ class CraneApp(tk.Tk):
                 self.current_step += 1
             # we're done printing steps
             else:
-                instruction_label.config(text="Finished. Close Window")
+                load_window.destroy()
 
     # takes containers, colors, and frame element
     # prints out ship layout
@@ -341,10 +336,12 @@ class CraneApp(tk.Tk):
             self.reset_container_color(container, name_colors)
             self.set_container_empty(container)
         else:
-            self.set_container_color(container, "deep sky blue")  # Highlight with blue color
-            ContainerPromptWindow(self, container)
+            prompt_window = ContainerPromptWindow(self, container)
+            self.wait_window(prompt_window)
 
-            self.load_containers.append(container)
+            if prompt_window.closedAutomatically:
+                self.set_container_color(container, "deep sky blue")  # Highlight with blue color
+                self.load_containers.append(container)
 
     # unload
     def on_right_click(self, event, container, name_colors):

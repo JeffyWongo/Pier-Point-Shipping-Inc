@@ -7,6 +7,7 @@ class ContainerPromptWindow(tk.Toplevel):
         self.container = container
 
         self.parent = parent
+        self.closedAutomatically = False
 
         # Label for container name
         tk.Label(self, text="Enter Container Name:").grid(row=0, column=0, padx=5, pady=5)
@@ -53,8 +54,7 @@ class ContainerPromptWindow(tk.Toplevel):
             container.name = container_name
             container.weight = int(container_weight)
 
-            # print(f"{container.name}, {container.weight}")
-
+            self.closedAutomatically = True
             self.destroy()  # Close the window
         else:
             # Show error message in the prompt window
