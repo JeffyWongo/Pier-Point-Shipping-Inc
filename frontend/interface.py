@@ -142,9 +142,9 @@ class CraneApp(tk.Tk):
                                         random.randint(150, 255),  # random light red
                                         random.randint(150, 255),  # random light green
                                         random.randint(150, 255))  # random light blue
+                                container_count += 1
                             container = Container(row=row, col=col, weight=weight, name=name)
                             self.containers.append(container)
-                            container_count += 1
                         except ValueError:
                             print(f"Skipping invalid line: {line}")
 
@@ -292,13 +292,17 @@ class CraneApp(tk.Tk):
                     elif(info[2]==(8,0)):
                         container_name = current_layout[info[1][0]][info[1][1]].name
                         instruction_label.config(text=f"Unload container \"{container_name}\" from {tuple(x+1 for x in info[1])}")
-                        self.submit_comment_load(f"\"{container_name}\" was offloaded")
+
+                        current_time = datetime.now().strftime("%Y-%m-%d %H:%M")
+                        self.submit_comment_load(f"\"{container_name}\" was offloaded")                
                     else:
                         instruction_label.config(text=f"Move container \"{current_layout[info[1][0]][info[1][1]].name}\" from {tuple(x+1 for x in info[1])} to {tuple(x+1 for x in info[2])}")
                 
                 self.current_step += 1
             # we're done printing steps
             else:
+                # TODO: outbound manifest
+                self.submit_comment_load(f"{current_time}        Finished a cycle. Manifest ___ was written to the desktop, and a reminder pop-up to the operator to send the file was displayed.")
                 load_window.destroy()
 
     # takes containers, colors, and frame element
@@ -452,9 +456,9 @@ class CraneApp(tk.Tk):
                                         random.randint(150, 255),  # random light red
                                         random.randint(150, 255),  # random light green
                                         random.randint(150, 255))  # random light blue
+                                container_count += 1
                             container = Container(row=row, col=col, weight=weight, name=name)
                             containers.append(container)
-                            container_count += 1
                         except ValueError:
                             print(f"Skipping invalid line: {line}")
 
