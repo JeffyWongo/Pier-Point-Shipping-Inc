@@ -300,8 +300,7 @@ class CraneApp(tk.Tk):
                 self.current_step += 1
             # we're done printing steps
             else:
-                # self.submit_comment_load(f"Finished a cycle. Manifest {filename.replace(".txt", "OUTBOUND.txt").split('/')[-1]} was written to the desktop, and a reminder pop-up to the operator to send the file was displayed.")
-                # TODO: outbound manifest
+                # outbound manifest
                 self.write_output_manifest(filename.replace(".txt", "OUTBOUND.txt").split('/')[-1])
                 load_window.destroy()
 
