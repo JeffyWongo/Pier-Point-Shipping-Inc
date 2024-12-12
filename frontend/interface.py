@@ -176,29 +176,15 @@ class CraneApp(tk.Tk):
         bottom_frame.grid_columnconfigure(1, weight=1, uniform="group1")
         bottom_frame.grid_columnconfigure(2, weight=1, uniform="group1")
 
-        # Parent frame for both time frames
-        time_frames = tk.Frame(bottom_frame, bg='gray30')
-        time_frames.grid(row=0, column=0, padx=20, pady=5, sticky='ns')
-
         # First Time Left Box
-        time_frame = tk.Frame(time_frames, bg='gray30')
-        time_frame.grid(row=0, column=0, padx=20, pady=5)
+        time_frame = tk.Frame(bottom_frame, bg='gray30')
+        time_frame.grid(row=0, column=0, padx=20, pady=5, sticky='ns')
 
-        time_label = tk.Label(time_frame, text="Estimated Total Time Left:", font=("SF Pro", 15), bg='gray30', fg='white')
+        time_label = tk.Label(time_frame, text="Estimated Finish Time:", font=("SF Pro", 15), bg='gray30', fg='white')
         time_label.grid(row=0, column=0, padx=5)
 
         time_display = tk.Label(time_frame, text="00:00", font=("SF Pro", 15, "bold"), bg='gray20', fg='white', relief='solid', width=10)
         time_display.grid(row=0, column=1, padx=5)
-
-        # Second Time Left Box
-        time_frame_2 = tk.Frame(time_frames, bg='gray30')
-        time_frame_2.grid(row=1, column=0, padx=20, pady=5)
-
-        time_label_2 = tk.Label(time_frame_2, text="Time Left for Current Move:", font=("SF Pro", 15), bg='gray30', fg='white')
-        time_label_2.grid(row=0, column=0, padx=5)
-
-        time_display_2 = tk.Label(time_frame_2, text="00:00", font=("SF Pro", 15, "bold"), bg='gray20', fg='white', relief='solid', width=10)
-        time_display_2.grid(row=0, column=1, padx=5)
 
         # instructions box
         instruction_frame = tk.Frame(bottom_frame, bg='gray30')
