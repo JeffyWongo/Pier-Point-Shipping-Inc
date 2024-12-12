@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import filedialog
 import random
-from datetime import datetime
+from datetime import datetime, timedelta
 from containerPrompt import ContainerPromptWindow
 import copy
 import sys
@@ -183,7 +183,7 @@ class CraneApp(tk.Tk):
         time_label = tk.Label(time_frame, text="Estimated Finish Time:", font=("SF Pro", 15), bg='gray30', fg='white')
         time_label.grid(row=0, column=0, padx=5)
 
-        time_display = tk.Label(time_frame, text="00:00", font=("SF Pro", 15, "bold"), bg='gray20', fg='white', relief='solid', width=10)
+        time_display = tk.Label(time_frame, text="__:__", font=("SF Pro", 15, "bold"), bg='gray20', fg='white', relief='solid', width=10)
         time_display.grid(row=0, column=1, padx=5)
 
         # instructions box
@@ -212,10 +212,10 @@ class CraneApp(tk.Tk):
         button_frame.grid(row=0, column=2, padx=20)
 
         next_button = tk.Button(button_frame, text="Start", font=("SF Pro", 12), bg='white', width=10, height=2,
-                                command=lambda: self.next_state(name_colors, self.grid_frame, instruction_label, next_button, load_window))
+                                command=lambda: self.next_state(name_colors, self.grid_frame, instruction_label, next_button, load_window, time_display))
         next_button.pack()
 
-    def next_state(self, name_colors, grid_frame, instruction_label, next_button, load_window):
+    def next_state(self, name_colors, grid_frame, instruction_label, next_button, load_window, time_display):
         # call Load Unload
         if not self.processed_moves:
             self.processed_moves = True
@@ -240,10 +240,20 @@ class CraneApp(tk.Tk):
 
             next_button.config(text="Next")
 
+            cost = 0
             if self.best_moves is not None:
                 instruction_label.config(text="Optimal Moves Found")
+                for move in self.best_moves:
+                    if move[1] is None:
+                        break
+                    if move[1] == (8,0) or move[2] == (8,0):
+                        cost += 2
+                    cost += abs(move[1][0] - move[2][0]) + abs(move[1][1] - move[2][1])
             else:
                 instruction_label.config(text="Solution Not Found")
+
+            eta = (datetime.now() + timedelta(minutes=cost)).strftime("%H:%M")
+            time_display.config(text=eta)
         # show next move
         else:
             # print next step
