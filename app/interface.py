@@ -55,7 +55,7 @@ class Container2:
         self.name = name
         
     def get_info(self):
-        return f"Pos: [{self.row:02},{self.col:02}]\nWeight: {self.weight}\nName: {self.name}"
+        return f"Pos: [{self.row:02},{self.col:02}]\n{self.weight}\n{self.name}"
     
 class CraneApp(tk.Tk):
     def __init__(self):
@@ -195,7 +195,8 @@ class CraneApp(tk.Tk):
         instruction_frame = tk.Frame(bottom_frame, bg='gray30')
         instruction_frame.grid(row=0, column=1, padx=20, pady=5)
 
-        instruction_label = tk.Label(instruction_frame, text="Left click spot to load. Right click container to unload", font=("SF Pro", 15), bg='gray25', fg='white', relief='solid', padx=10, pady=5)
+        instruction_label = tk.Label(instruction_frame, text="Left click spot to load. Right click container to unload", font=("SF Pro", 15),
+                                     bg='gray25', fg='white', relief='solid', padx=10, pady=5, wraplength=600)
         instruction_label.grid(row=0, column=0, padx=10, pady=5, sticky='w')
 
         # Comment Box and Submit Button
