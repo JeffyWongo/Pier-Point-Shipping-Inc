@@ -55,7 +55,7 @@ class Container2:
         self.name = name
         
     def get_info(self):
-        return f"Pos: [{self.row:02},{self.col:02}]\nWeight: {self.weight}\nName: {self.name}"
+        return f"Pos: [{self.row:02},{self.col:02}]\n{self.weight}\n{self.name}"
     
 class CraneApp(tk.Tk):
     def __init__(self):
@@ -195,7 +195,7 @@ class CraneApp(tk.Tk):
         instruction_frame = tk.Frame(bottom_frame, bg='gray30')
         instruction_frame.grid(row=0, column=1, padx=20, pady=5)
 
-        instruction_label = tk.Label(instruction_frame, text="Left click spot to load. Right click container to unload", font=("SF Pro", 15), bg='gray25', fg='white', relief='solid', padx=10, pady=5)
+        instruction_label = tk.Label(instruction_frame, text="Left click spot to load. Right click container to unload", font=("SF Pro", 15), bg='gray25', fg='white', relief='solid', padx=10, pady=5, wraplength=600)
         instruction_label.grid(row=0, column=0, padx=10, pady=5, sticky='w')
 
         # Comment Box and Submit Button
@@ -665,7 +665,7 @@ class CraneApp(tk.Tk):
         
 
     def animate_path(self, ship, path, container, grid_frame):
-        self.current_move_time = calculate_cost((container.row, container.col), (path[-1][0], path[-1][1]))
+        self.current_move_time = len(path)
         def move(step=0): 
             if step == 0: # make 1st step empty
                 original_label = grid_frame.grid_slaves(row=container.row, column=container.col)[0]
@@ -703,9 +703,6 @@ class CraneApp(tk.Tk):
                 )
 
         move()
-
-def calculate_cost(coord1, coord2):
-    return abs(coord2[0] - coord1[0]) + abs(coord2[1] - coord1[1])\
         
 # Main
 if __name__ == "__main__":
