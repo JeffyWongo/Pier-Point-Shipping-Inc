@@ -1,0 +1,9 @@
+2024-12-13 12:58        Andy has signed in
+2024-12-13 12:59        Manifest SilverQueen.txt is opened, there are 4 containers on the ship
+2024-12-13 13:00        "Batons" is offloaded.
+2024-12-13 13:01        "Catfish" is offloaded.
+2024-12-13 13:01        "Natron" is onloaded.
+2024-12-13 13:01        Finished a cycle. Manifest "SilverQueenOUTBOUND.txt" was written to desktop, and a reminder pop-up to the operator to send the file was displayed.
+2024-12-13 13:01        Manifest SilverQueen.txt is opened, there are 4 containers on the ship
+2024-12-13 13:03        Catfish's weight seemed to be off by 5 kgs
+2024-12-13 13:03        Finished a Cycle. Manifest 'SilverQueenOUTBOUND.txt' was written to desktop, and a reminder pop-up to operator to send file was displayed

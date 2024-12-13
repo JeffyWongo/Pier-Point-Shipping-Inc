@@ -1,0 +1,158 @@
+if __name__ != "__main__":
+    pass
+else:
+    # Testing
+    container1 = Container("A", 120)
+    container2 = Container("B", 200)
+    container3 = Container("C", 400)
+    container4 = Container("D", 500)
+    container5 = Container("E", 2200)
+    container6 = Container("F", 300)
+    container7 = Container("G", 212)
+    container8 = Container("H", 1212)
+    nan_container = Container("NAN", -1)
+
+    # 8 x 12
+    test_layout = [[Container() for i in range(0,12)] for j in range(0,8)]
+    # test_layout[0][0] = container1
+    # test_layout[1][0] = container1
+    # test_layout[0][2] = container1
+    # test_layout[1][2] = container2
+    # test_layout[0][10] = container4
+    # test_layout[0][1] = nan_container
+
+    # extreme case
+    # for i in range(8):
+    #     test_layout[i][1] = container2
+    # test_layout[0][0] = container1
+    # test_layout[1][0] = container3
+
+    # test_output = Load.run(test_layout, [(container1, (0,0))], [])
+
+    # Test case for running:
+    # unloading
+    # test_output = Load.run(test_layout, [(container1, (0, 0))], [])
+    # test_output = Load.run(test_layout, [(container1, (0, 0)), (container3, (0, 2))], [])
+    # loading
+    # test_output = Load.run(test_layout, [], [(container4, (0, 3))])
+    # test_output = Load.run(test_layout, [], [(container4, (0, 0)), (container5, (0, 11))])
+    # both
+    # test_output = Load.run(test_layout, [(container1, (0, 0))], [(container4, (0, 10)), (container5, (0, 11))])
+    # test_output = Load.run(test_layout, [(container1, (0, 0))], [(container6, (0, 11))])
+    # test_output = Load.run(test_layout, [(container1, (0, 0)), (container3, (0, 2))], [(container6, (0, 11))])
+    # test_output = Load.run(test_layout, [(container1, (0, 0)), (container1, (0, 2))], [(container4, (1, 9))])
+
+    # NAN test case
+    # for i in range(0, 12):
+    #     test_layout[0][i] = nan_container
+
+    # test_output = Load.run(test_layout, [(nan_container, (0, 0))], [])
+
+
+    # Given test cases
+    # test case 1
+    # test_layout[0][0] = nan_container
+    # test_layout[0][11] = nan_container
+    # test_layout[0][1] = container1
+    # test_layout[0][2] = container2
+
+    # test_output = Load.run(test_layout, [(container1, (0,1))], [])
+
+    # test case 2
+    # test_layout[0][0] = nan_container
+    # test_layout[0][1] = nan_container
+    # test_layout[0][2] = nan_container
+    # test_layout[0][9] = nan_container
+    # test_layout[0][10] = nan_container
+    # test_layout[0][11] = nan_container
+    # test_layout[1][0] = nan_container
+    # test_layout[1][11] = nan_container
+    # test_layout[2][0] = container1
+    # test_layout[1][1] = container2
+    # test_layout[0][3] = container3
+    # test_layout[0][8] = container4
+
+    # test_output = Load.run(test_layout, [], [(container5, (0, 6))])
+
+    # test case 3
+    # test_layout[0][0] = container1
+    # test_layout[0][1] = container2
+    # test_layout[0][2] = container3
+    # test_layout[0][3] = container4
+    # test_layout[1][0] = container5
+    # test_layout[1][1] = container6
+
+    # test_output = Load.run(test_layout, [(container2, (0, 1))], [(container4, (0, 10)), (container7, (2,0))])
+
+    # test case 4
+    # for i in range(0, 12):
+    #     test_layout[0][i] = nan_container
+    # test_layout[1][0] = nan_container
+    # test_layout[1][11] = nan_container
+    # test_layout[1][4] = container1
+    # test_layout[2][4] = container2
+    # test_layout[3][4] = container3
+    # test_layout[4][4] = container4
+    # test_layout[5][4] = container5
+    # test_layout[6][4] = container6
+    # test_layout[7][4] = container7
+
+    # test_output = Load.run(test_layout, [(container6, (6, 4))], [(container8, (2, 0))])
+
+    # test case 5
+    # test_layout[0][0] = nan_container
+    # test_layout[0][11] = nan_container
+    # test_layout[0][1] = container1
+    # test_layout[0][2] = container2
+    # test_layout[0][3] = container3
+    # test_layout[0][4] = container4
+    # test_layout[0][5] = container5
+
+    # test_output = Load.run(test_layout, [(container3, (0, 3)), (container4, (0, 4))], [(container6, (1, 1)), (container5, (1, 5))])
+
+    # test case 6
+    test_layout[0][0] = nan_container
+    test_layout[0][11] = nan_container
+    test_layout[0][1] = container1
+    test_layout[0][2] = container2
+    test_layout[0][3] = container3
+    test_layout[1][1] = container4
+
+    test_output = Load.run(test_layout, [(container1, (0, 1)), (container3, (0, 3))], [(container6, (1, 0))])
+
+    if test_output is not None:
+        print("SOLUTION:")
+        for item in test_output:
+            Load.print_layout(item[0])
+            print(f"{item[1]} -> {item[2]}")
+            print("=============")
+    else:
+        print("No SOLUTION")
+        Load.print_layout(test_layout)
+
+
+    # Test case for heuristic: (may still be glitchy with multiple containers in the same column)
+    # h = Load.calc_heuristic(layout, [(unload_container, (0, 0))], [(load_container, (0, 1))])
+    # print(h)
+    # h = Load.calc_heuristic(layout, [(Container("A", 120), (2,0)), (Container("C", 400), (0,0))], [])
+    # print(h)
+
+    # Test case for checking goal state:
+    # # loading:
+    # result = Load.check_goal_state(layout, [], [(Container("A", 120), (0,0)), (Container("C", 400), (1,0))])
+    # print(result)
+    # # unloading:
+    # result = Load.check_goal_state(layout, [(Container("C", 400), (1,0))], [])
+    # print(result)
+
+    # Test case for finding top empty containers for each column:
+    # layout2 = [[Container() for i in range(0,12)] for j in range(0,8)]
+    # layout2[0][0] = load_container
+    # layout2[1][0] = load_container
+    # layout2[2][0] = load_container
+    # layout2[0][1] = load_container
+    # layout2[0][4] = load_container
+    # output = Load.find_top_empty_containers(layout2)
+    # for item in output:
+    #     cords = "(" + str(item[0]) + ", " + str(item[1]) + ")"
+    #     print(cords)
