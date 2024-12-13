@@ -68,6 +68,7 @@ class CraneApp(tk.Tk):
         self.current_path_index = 0
         self.reset_load_unload()
         self.grid_frame = tk.Frame(self)
+        self.current_move_time = 0
 
         self.show_login()
 
@@ -289,7 +290,7 @@ class CraneApp(tk.Tk):
                                 break
                         instruction_label.config(text=f"Load container \"{container_name}\" to {tuple(x+1 for x in info[2])} (green)")
 
-                        self.submit_comment_load(f"\"{container_name}\" was onloaded")
+                        self.submit_comment_load(f"\"{container_name}\" is onloaded.")
 
                         to_row, to_col = tuple(x+1 for x in info[2])
                         to_container = next((cont for cont in self.containers if cont.row == to_row and cont.col == to_col), None)
@@ -300,7 +301,7 @@ class CraneApp(tk.Tk):
                         container_name = current_layout[info[1][0]][info[1][1]].name
                         instruction_label.config(text=f"Unload container \"{container_name}\" from {tuple(x+1 for x in info[1])} (red)")
 
-                        self.submit_comment_load(f"\"{container_name}\" was offloaded")
+                        self.submit_comment_load(f"\"{container_name}\" is offloaded.")
 
                         from_row, from_col = tuple(x+1 for x in info[1])
                         from_container = next((cont for cont in self.containers if cont.row == from_row and cont.col == from_col), None)
@@ -549,23 +550,38 @@ class CraneApp(tk.Tk):
                 container_label = tk.Label(grid_frame, text=container.show_info(), font=("SF Pro", 10),
                             width=15, height=4, bg=container.color, relief='solid')
                 container_label.grid(row=7 - r, column=c, padx=2, pady=2)
-                    
-        # "Next" Button
-        next_button_frame = tk.Frame(window, bg='gray30')
-        next_button_frame.pack(pady=10)
+        
+        bottom_frame = tk.Frame(window, bg='gray30')
+        bottom_frame.pack(pady=20, fill='x')
 
-        next_button = tk.Button(next_button_frame, text="Next", font=("SF Pro", 12), bg='white', 
-                                command=lambda: self.next_move(ship, grid_frame, window, filename))
-        next_button.grid(row=0, column=0)
+        # For alignment
+        bottom_frame.grid_columnconfigure(0, weight=1, uniform="group1")
+        bottom_frame.grid_columnconfigure(1, weight=1, uniform="group1")
+        bottom_frame.grid_columnconfigure(2, weight=1, uniform="group1")
+        
+        # Time Left Box (Left Column)
+        time_frame = tk.Frame(bottom_frame, bg='gray30')
+        time_frame.grid(row=0, column=0, padx=20, pady=5, sticky='ns')
 
-        # Comment Box and Submit Button
-        comment_frame = tk.Frame(window, bg='gray30')
-        comment_frame.pack(pady=20)
+        time_label = tk.Label(time_frame, text="Est. Time of Current Move: ", font=("SF Pro", 15), bg='gray30', fg='white')
+        time_label.grid(row=0, column=0, padx=5)
+
+        curr_move_label = tk.Label(time_frame, text=f"{self.current_move_time} minutes", font=("SF Pro", 15, "bold"), bg='gray20', fg='white', relief='solid', width=10)
+        curr_move_label.grid(row=0, column=1, padx=5)
+        
+        next_button = tk.Button(bottom_frame, text="Next", font=("SF Pro", 12), bg='white', width=10, height=2,
+                                command=lambda: [self.next_move(ship, grid_frame, window, filename),
+                                                    curr_move_label.config(text=f"{self.current_move_time} minutes")])
+        next_button.grid(row=0, column=1)
+
+        # Comment Box and Submit Button (Middle Column)
+        comment_frame = tk.Frame(bottom_frame, bg='gray30')
+        comment_frame.grid(row=0, column=2, padx=20, pady=5, sticky='ew')
 
         comment_label = tk.Label(comment_frame, text="Comments:", font=("SF Pro", 15), bg='gray30', fg='white')
         comment_label.grid(row=0, column=0, padx=10, pady=5, sticky='w')
 
-        comment_entry = tk.Text(comment_frame, font=("SF Pro", 12), width=50, height=5)
+        comment_entry = tk.Text(comment_frame, font=("SF Pro", 12), width=50, height=3)
         comment_entry.grid(row=1, column=0, padx=10, pady=5)
 
         submit_button = tk.Button(comment_frame, text="Submit", font=("SF Pro", 12), bg='white',
@@ -603,8 +619,8 @@ class CraneApp(tk.Tk):
         if not self.paths_to_animate:
             if ship.previous_best_move == best_move:
                 self.write_output_manifest_balance(ship, filename)
-                if messagebox.showinfo("Balance Achieved", f"Optimal Balance Achieved! The file '{ship.filename}'.txt has been successfully saved to the desktop. Please review the details and send the file to the appropriate recipient."):
-                    window.destroy()
+                messagebox.showinfo("Balance Achieved", f"Optimal Balance Achieved! The file '{ship.filename}'.txt has been successfully saved to the desktop. Please review the details and send the file to the appropriate recipient.")
+                window.destroy()
                 current_time = datetime.now().strftime("%Y-%m-%d %H:%M")
                 log_entry = f"{current_time}        Finished a Cycle. Manifest '{ship.filename}OUTBOUND.txt' was written to desktop, and a reminder pop-up to operator to send file was displayed\n"
                 with open(log_file_name, "a") as log_file:
@@ -639,8 +655,8 @@ class CraneApp(tk.Tk):
             self.current_path_index = 0
             if ship.is_balanced():
                 self.write_output_manifest_balance(ship, filename)
-                if messagebox.showinfo("Balance Achieved", f"Optimal Balance Achieved! The file '{ship.filename}'.txt has been successfully saved to the desktop. Please review the details and send the file to the appropriate recipient."):
-                    window.destroy()
+                messagebox.showinfo("Balance Achieved", f"Optimal Balance Achieved! The file '{ship.filename}'.txt has been successfully saved to the desktop. Please review the details and send the file to the appropriate recipient.")
+                window.destroy()
                 current_time = datetime.now().strftime("%Y-%m-%d %H:%M")
                 log_entry = f"{current_time}        Finished a Cycle. Manifest '{ship.filename}OUTBOUND.txt' was written to desktop, and a reminder pop-up to operator to send file was displayed\n"
                 with open(log_file_name, "a") as log_file:
@@ -649,6 +665,7 @@ class CraneApp(tk.Tk):
         
 
     def animate_path(self, ship, path, container, grid_frame):
+        self.current_move_time = calculate_cost((container.row, container.col), (path[-1][0], path[-1][1]))
         def move(step=0): 
             if step == 0: # make 1st step empty
                 original_label = grid_frame.grid_slaves(row=container.row, column=container.col)[0]
@@ -687,7 +704,9 @@ class CraneApp(tk.Tk):
 
         move()
 
-
+def calculate_cost(coord1, coord2):
+    return abs(coord2[0] - coord1[0]) + abs(coord2[1] - coord1[1])\
+        
 # Main
 if __name__ == "__main__":
     app = CraneApp()
