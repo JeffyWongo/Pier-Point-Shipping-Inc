@@ -14,7 +14,7 @@ from load import Load
 from load import Container as loadContainer
 
 current_year = datetime.now().year
-log_file_name = f"logfile{current_year}.txt"
+log_file_name = f"KeoghsPort{current_year}.txt"
 
 class LoginPage(tk.Frame):
     def __init__(self, master, on_login):
@@ -363,7 +363,7 @@ class CraneApp(tk.Tk):
                 file.write(f"{position}, {weight}, {name}\n")
         
         # Log the operation with a timestamp
-        log_entry = f"Finished a cycle. Manifest \"{filename.split('/')[-1]}\" has been written, and a reminder pop-up to the operator to send the file was displayed."
+        log_entry = f"Finished a cycle. Manifest \"{filename.split('/')[-1]}\" was written to desktop, and a reminder pop-up to the operator to send the file was displayed."
         self.submit_comment_load(log_entry)
     
     # takes containers, colors, and frame element
@@ -620,7 +620,7 @@ class CraneApp(tk.Tk):
         if not self.paths_to_animate:
             if ship.previous_best_move == best_move:
                 self.write_output_manifest_balance(ship, filename)
-                messagebox.showinfo("Balance Achieved", f"Optimal Balance Achieved! The file '{ship.filename}'.txt has been successfully saved to the desktop. Please review the details and send the file to the appropriate recipient.")
+                messagebox.showinfo("Balance Achieved", f"Optimal Balance Achieved! The file '{ship.filename}OUTBOUND'.txt has been successfully saved to the desktop. Please review the details and send the file to the appropriate recipient.")
                 window.destroy()
                 current_time = datetime.now().strftime("%Y-%m-%d %H:%M")
                 log_entry = f"{current_time}        Finished a Cycle. Manifest '{ship.filename}OUTBOUND.txt' was written to desktop, and a reminder pop-up to operator to send file was displayed\n"
@@ -656,7 +656,7 @@ class CraneApp(tk.Tk):
             self.current_path_index = 0
             if ship.is_balanced():
                 self.write_output_manifest_balance(ship, filename)
-                messagebox.showinfo("Balance Achieved", f"Optimal Balance Achieved! The file '{ship.filename}'.txt has been successfully saved to the desktop. Please review the details and send the file to the appropriate recipient.")
+                messagebox.showinfo("Balance Achieved", f"Optimal Balance Achieved! The file '{ship.filename}OUTBOUND'.txt has been successfully saved to the desktop. Please review the details and send the file to the appropriate recipient.")
                 window.destroy()
                 current_time = datetime.now().strftime("%Y-%m-%d %H:%M")
                 log_entry = f"{current_time}        Finished a Cycle. Manifest '{ship.filename}OUTBOUND.txt' was written to desktop, and a reminder pop-up to operator to send file was displayed\n"

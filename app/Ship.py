@@ -6,7 +6,7 @@ import os
 import random
 
 current_year = datetime.now().year
-log_file_name = f"logfile{current_year}.txt"
+log_file_name = f"KeoghsPort{current_year}.txt"
 
 class Ship:
     def __init__(self, initial_ship):
