@@ -3,6 +3,7 @@ from math import inf
 from datetime import datetime
 from Container import Container
 import os
+import random
 
 current_year = datetime.now().year
 log_file_name = f"logfile{current_year}.txt"
@@ -24,6 +25,7 @@ class Ship:
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M")
         with open(filename, 'r') as file:
             container_count = 0
+            name_colors = {}
 
             for line in file:
                 line = line.strip()
@@ -37,13 +39,16 @@ class Ship:
                 col = int(position[1]) - 1  # Adjust for 0-based indexing
 
                 if name == "NAN":
-                    color = 'gray20'  # Special color for "NAN"
+                    color = 'gray20' 
                 elif name == "UNUSED":
                     color = 'white'
                 else:
-                    color = 'lightgreen'
+                    name_colors[name] = "#{:02x}{:02x}{:02x}".format(
+                        random.randint(150, 255),  # random light red
+                        random.randint(150, 255),  # random light green
+                        random.randint(150, 255))  # random light blue
+                    color = name_colors.get(name)
                     container_count += 1
-                
                 container = Container(row=row, col=col, weight=weight, name=name, color=color)
                 self.ship[row][col] = container
 
