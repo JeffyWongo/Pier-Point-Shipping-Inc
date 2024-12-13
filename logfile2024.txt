@@ -103,3 +103,78 @@
 2024-12-12 02:17        asdf has signed in
 2024-12-12 02:17        Manifest SilverQueen.txt is opened, there are 4 containers on the ship
 2024-12-12 02:18        Finished a Cycle. Manifest SilverQueenOUTBOUND.txt was written to desktop, and a reminder pop-up to operator to send file was displayed
+2024-12-12 16:22        asdf has signed in
+2024-12-12 16:22        Manifest ShipCase1.txt is opened, there are 2 containers on the ship
+2024-12-12 16:23        "asdf" was onloaded
+2024-12-12 16:23        Finished a cycle. Manifest "ShipCase1OUTBOUND.txt" has been written, and a reminder pop-up to the operator to send the file was displayed.
+2024-12-12 16:24        Manifest ShipCase2.txt is opened, there are 4 containers on the ship
+2024-12-12 16:24        Finished a cycle. Manifest "ShipCase2OUTBOUND.txt" has been written, and a reminder pop-up to the operator to send the file was displayed.
+2024-12-12 16:25        Manifest ShipCase1.txt is opened, there are 2 containers on the ship
+2024-12-12 16:25        Finished a Cycle. Manifest ShipCase1OUTBOUND.txt was written to desktop, and a reminder pop-up to operator to send file was displayed
+2024-12-12 16:25        Manifest ShipCase2.txt is opened, there are 4 containers on the ship
+2024-12-12 16:25        Finished a Cycle. Manifest ShipCase2OUTBOUND.txt was written to desktop, and a reminder pop-up to operator to send file was displayed
+2024-12-12 16:25        Manifest ShipCase3.txt is opened, there are 6 containers on the ship
+2024-12-12 16:26        Finished a Cycle. Manifest ShipCase3OUTBOUND.txt was written to desktop, and a reminder pop-up to operator to send file was displayed
+2024-12-12 16:26        Manifest ShipCase4.txt is opened, there are 7 containers on the ship
+2024-12-12 16:26        Finished a Cycle. Manifest ShipCase4OUTBOUND.txt was written to desktop, and a reminder pop-up to operator to send file was displayed
+2024-12-12 16:26        Manifest ShipCase5.txt is opened, there are 5 containers on the ship
+2024-12-12 16:26        Finished a Cycle. Manifest ShipCase5OUTBOUND.txt was written to desktop, and a reminder pop-up to operator to send file was displayed
+2024-12-12 16:26        Manifest SilverQueen.txt is opened, there are 4 containers on the ship
+2024-12-12 16:26        Finished a Cycle. Manifest SilverQueenOUTBOUND.txt was written to desktop, and a reminder pop-up to operator to send file was displayed
+2024-12-12 16:43        asdf has signed in
+2024-12-12 16:43        Manifest ShipCase5.txt is opened, there are 5 containers on the ship
+2024-12-12 16:44        sdf has signed in
+2024-12-12 16:44        Manifest SilverQueen.txt is opened, there are 4 containers on the ship
+2024-12-12 16:45        asdf has signed in
+2024-12-12 16:45        Manifest SilverQueen.txt is opened, there are 4 containers on the ship
+2024-12-12 16:49        asdf has signed in
+2024-12-12 16:49        Manifest SilverQueen.txt is opened, there are 4 containers on the ship
+2024-12-12 16:52        asdf has signed in
+2024-12-12 16:52        Manifest SilverQueen.txt is opened, there are 0 containers on the ship
+2024-12-12 16:52        Finished a Cycle. Manifest 'SilverQueenOUTBOUND.txt' was written to desktop, and a reminder pop-up to operator to send file was displayed
+2024-12-12 16:52        sdf has signed in
+2024-12-12 16:52        Manifest ShipCase1.txt is opened, there are 2 containers on the ship
+2024-12-12 16:53        Finished a Cycle. Manifest 'ShipCase1OUTBOUND.txt' was written to desktop, and a reminder pop-up to operator to send file was displayed
+2024-12-12 16:53        sdf has signed in
+2024-12-12 16:55        l, has signed in
+2024-12-12 16:58        sadf has signed in
+2024-12-12 17:04        hjv has signed in
+2024-12-12 17:04        Manifest SilverQueen.txt is opened, there are 4 containers on the ship
+2024-12-12 17:04        Finished a Cycle. Manifest 'SilverQueenOUTBOUND.txt' was written to desktop, and a reminder pop-up to operator to send file was displayed
+2024-12-12 17:06        Manifest SilverQueen.txt is opened, there are 4 containers on the ship
+2024-12-12 17:06        Finished a Cycle. Manifest 'SilverQueenOUTBOUND.txt' was written to desktop, and a reminder pop-up to operator to send file was displayed
+2024-12-12 17:13        asdf has signed in
+2024-12-12 17:13        Manifest SilverQueen.txt is opened, there are 4 containers on the ship
+2024-12-12 17:13        Finished a Cycle. Manifest 'SilverQueenOUTBOUND.txt' was written to desktop, and a reminder pop-up to operator to send file was displayed
+2024-12-12 17:14        asdf has signed in
+2024-12-12 17:14        Manifest SilverQueen.txt is opened, there are 4 containers on the ship
+2024-12-12 17:15        Finished a Cycle. Manifest 'SilverQueenOUTBOUND.txt' was written to desktop, and a reminder pop-up to operator to send file was displayed
+2024-12-12 17:17        sdf has signed in
+2024-12-12 17:17        Manifest SilverQueen.txt is opened, there are 4 containers on the ship
+2024-12-12 17:39        sdf has signed in
+2024-12-12 17:39        Manifest SilverQueen.txt is opened, there are 4 containers on the ship
+2024-12-12 17:40        sddf has signed in
+2024-12-12 17:40        Manifest SilverQueenOUTBOUND.txt is opened, there are 0 containers on the ship
+2024-12-12 17:40        sdf has signed in
+2024-12-12 17:40        Manifest SilverQueen.txt is opened, there are 4 containers on the ship
+2024-12-12 17:40        Finished a Cycle. Manifest 'SilverQueenOUTBOUND.txt' was written to desktop, and a reminder pop-up to operator to send file was displayed
+2024-12-12 17:41        sdf has signed in
+2024-12-12 17:41        Manifest SilverQueen.txt is opened, there are 4 containers on the ship
+2024-12-12 17:41        Finished a Cycle. Manifest 'SilverQueenOUTBOUND.txt' was written to desktop, and a reminder pop-up to operator to send file was displayed
+2024-12-12 20:41        asdf has signed in
+2024-12-12 20:41        Manifest SilverQueen.txt is opened, there are 4 containers on the ship
+2024-12-12 20:41        Finished a Cycle. Manifest 'SilverQueenOUTBOUND.txt' was written to desktop, and a reminder pop-up to operator to send file was displayed
+2024-12-12 20:42        asdf has signed in
+2024-12-12 20:42        Manifest SilverQueen.txt is opened, there are 4 containers on the ship
+2024-12-12 20:43        Finished a Cycle. Manifest 'SilverQueenOUTBOUND.txt' was written to desktop, and a reminder pop-up to operator to send file was displayed
+2024-12-12 20:47        asdf has signed in
+2024-12-12 20:48        Manifest SilverQueen.txt is opened, there are 4 containers on the ship
+2024-12-12 20:48        Finished a Cycle. Manifest 'SilverQueenOUTBOUND.txt' was written to desktop, and a reminder pop-up to operator to send file was displayed
+2024-12-12 20:50        567u has signed in
+2024-12-12 20:50        Manifest SilverQueen.txt is opened, there are 4 containers on the ship
+2024-12-12 20:50        Finished a Cycle. Manifest 'SilverQueenOUTBOUND.txt' was written to desktop, and a reminder pop-up to operator to send file was displayed
+2024-12-12 20:56        tyhr has signed in
+2024-12-12 20:56        Manifest SilverQueen.txt is opened, there are 4 containers on the ship
+2024-12-12 20:56        Finished a Cycle. Manifest 'SilverQueenOUTBOUND.txt' was written to desktop, and a reminder pop-up to operator to send file was displayed
+2024-12-12 20:57        Manifest ShipCase4.txt is opened, there are 7 containers on the ship
+2024-12-12 20:57        Finished a Cycle. Manifest 'ShipCase4OUTBOUND.txt' was written to desktop, and a reminder pop-up to operator to send file was displayed
